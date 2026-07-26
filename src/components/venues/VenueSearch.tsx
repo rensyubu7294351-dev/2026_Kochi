@@ -28,6 +28,7 @@ export function VenueSearch({
   onKeyword,
   onReset,
   onLocate,
+  onShowAll,
   locating,
   results,
   onResultClick,
@@ -40,6 +41,7 @@ export function VenueSearch({
   onKeyword: (v: string) => void;
   onReset: () => void;
   onLocate: () => void;
+  onShowAll: () => void;
   locating: boolean;
   results: SearchResult[] | null;
   onResultClick: (r: SearchResult) => void;
@@ -52,13 +54,21 @@ export function VenueSearch({
       <div className="rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
         <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-bold">施設をさがす</span>
-          <button
-            onClick={onLocate}
-            disabled={locating}
-            className="rounded-full bg-blue-500 px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
-          >
-            {locating ? "取得中..." : "📍 現在地"}
-          </button>
+          <div className="flex gap-1.5">
+            <button
+              onClick={onShowAll}
+              className="rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-600"
+            >
+              🗺 全体表示
+            </button>
+            <button
+              onClick={onLocate}
+              disabled={locating}
+              className="rounded-full bg-blue-500 px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
+            >
+              {locating ? "取得中..." : "📍 現在地"}
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2">

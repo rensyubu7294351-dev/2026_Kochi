@@ -58,9 +58,11 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
   const [keyword, setKeyword] = useState("");
   const hasQuery = typeFilter !== "all" || keyword.trim() !== "";
 
-  // 現在地・フォーカス（検索結果や現在地への移動）
+  // 現在地・フォーカス・全体表示の制御
   const [currentLocation, setCurrentLocation] = useState<LatLng | null>(null);
   const [focusPosition, setFocusPosition] = useState<LatLng | null>(null);
+  const [fitWithCurrent, setFitWithCurrent] = useState(false); // 全体表示に現在地を含めるか
+  const [fitToken, setFitToken] = useState(0); // 全体表示の再実行トリガー
   const geo = useGeolocation();
 
   // 検索結果（全会場 or 特定会場を対象に、種類・キーワードでしぼる）
@@ -105,6 +107,7 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
     setActiveSlug(slug);
     setVenueFilter(slug);
     setFocusPosition(null);
+    setFitWithCurrent(false); // 会場切替時はその会場の全ピンを表示
   }
 
   function handleVenueFilter(v: string) {
@@ -112,6 +115,7 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
     if (v !== "all") {
       setActiveSlug(v);
       setFocusPosition(null);
+      setFitWithCurrent(false);
     }
   }
 
@@ -127,12 +131,22 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
     setFocusPosition(r.facility.position);
   }
 
+  // 現在地を取得し、全ピン＋現在地をまとめて表示
   async function handleLocate() {
     const pos = await geo.request();
     if (pos) {
       setCurrentLocation(pos);
-      setFocusPosition(pos);
+      setFocusPosition(null);
+      setFitWithCurrent(true);
+      setFitToken((t) => t + 1);
     }
+  }
+
+  // 全ピン（＋取得済みなら現在地）を1画面に収める
+  function handleShowAll() {
+    setFocusPosition(null);
+    setFitWithCurrent(currentLocation != null);
+    setFitToken((t) => t + 1);
   }
 
   return (
@@ -166,6 +180,7 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
         onKeyword={setKeyword}
         onReset={handleReset}
         onLocate={handleLocate}
+        onShowAll={handleShowAll}
         locating={geo.loading}
         results={results}
         onResultClick={handleResultClick}
@@ -205,6 +220,8 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
           facilities={activeFacilities}
           currentLocation={currentLocation}
           focusPosition={focusPosition}
+          fitWithCurrent={fitWithCurrent}
+          fitToken={fitToken}
         />
       </div>
     </>

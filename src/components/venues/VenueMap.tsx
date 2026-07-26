@@ -11,55 +11,103 @@ import { GoogleMapProvider } from "@/components/map/GoogleMapProvider";
 import { FacilityLegend } from "./FacilityLegend";
 
 /**
- * 地図の中心を制御する内部コントローラ。
- * - focusPosition があればそこへズームイン（検索結果・現在地への移動）
- * - なければ会場の中心へ
+ * 地図の中心・ズームを制御する内部コントローラ。
+ * 優先順位:
+ *  ① focusPosition があればそこへズームイン（検索結果への移動）
+ *  ② それ以外は「全ピン（＋現在地）」が収まるよう自動でズーム調整（fitBounds）
+ *  ③ ピンが無ければ会場の中心を表示
  */
 function MapController({
   venue,
+  facilities,
+  currentLocation,
   focusPosition,
+  fitWithCurrent,
+  fitToken,
 }: {
   venue: Venue;
+  facilities: Facility[];
+  currentLocation?: LatLng | null;
   focusPosition?: LatLng | null;
+  fitWithCurrent: boolean;
+  fitToken: number;
 }) {
   const map = useMap();
   useEffect(() => {
     if (!map) return;
+
+    // ① 検索結果などの単一地点フォーカス
     if (focusPosition) {
       map.panTo(focusPosition);
       map.setZoom(19);
-    } else {
+      return;
+    }
+
+    // ② 全ピン（必要なら現在地も）を含む範囲を計算
+    const pts: LatLng[] = facilities.map((f) => f.position);
+    if (fitWithCurrent && currentLocation) pts.push(currentLocation);
+
+    // ③ ピンが無ければ会場中心
+    if (pts.length === 0) {
       map.panTo(venue.center);
       map.setZoom(venue.zoom ?? DEFAULT_VENUE_ZOOM);
+      return;
     }
-  }, [map, venue, focusPosition]);
+
+    const lats = pts.map((p) => p.lat);
+    const lngs = pts.map((p) => p.lng);
+    const north = Math.max(...lats);
+    const south = Math.min(...lats);
+    const east = Math.max(...lngs);
+    const west = Math.min(...lngs);
+
+    // ほぼ1点ならfitBoundsだと寄りすぎるのでpan+固定ズーム
+    if (north - south < 0.0008 && east - west < 0.0008) {
+      map.panTo(pts[0]);
+      map.setZoom(18);
+      return;
+    }
+
+    // 端のピンが切れないよう余白(px)を付けて全体表示
+    map.fitBounds({ north, south, east, west }, 64);
+  }, [
+    map,
+    venue,
+    facilities,
+    currentLocation,
+    focusPosition,
+    fitWithCurrent,
+    fitToken,
+  ]);
   return null;
 }
 
 /**
  * 個別会場のマップ。
- * - 施設ピンを AdvancedMarker（自作の可愛いアイコン）で表示
+ * - 施設ピン（自作アイコン＋ラベル）を表示
  * - 現在地を青ドットで表示
- * - 凡例を下部に表示
+ * - 全ピン（＋現在地）が収まるよう自動ズーム
  * - 各ピンから「現在地からのルート検索」を Google マップで開く
- * - venue / focusPosition が変わると地図がその場所へ移動する
  */
 export function VenueMap({
   venue,
   facilities,
   currentLocation,
   focusPosition,
+  fitWithCurrent,
+  fitToken,
 }: {
   venue: Venue;
   facilities: Facility[];
   currentLocation?: LatLng | null;
   focusPosition?: LatLng | null;
+  fitWithCurrent: boolean;
+  fitToken: number;
 }) {
   const geo = useGeolocation();
   const facilityTypes = facilities.map((f) => f.type);
 
   async function routeTo(dest: LatLng) {
-    // 現在地を取得できれば origin に含める。失敗しても Google 側で現在地を使う。
     const origin = currentLocation ?? (await geo.request()) ?? undefined;
     window.open(buildDirectionsUrl(dest, origin, "walking"), "_blank");
   }
@@ -75,7 +123,14 @@ export function VenueMap({
             gestureHandling="greedy"
             disableDefaultUI={false}
           >
-            <MapController venue={venue} focusPosition={focusPosition} />
+            <MapController
+              venue={venue}
+              facilities={facilities}
+              currentLocation={currentLocation}
+              focusPosition={focusPosition}
+              fitWithCurrent={fitWithCurrent}
+              fitToken={fitToken}
+            />
 
             {/* 現在地（青ドット） */}
             {currentLocation && (
@@ -103,7 +158,6 @@ export function VenueMap({
                       height={56}
                       className="drop-shadow"
                     />
-                    {/* 施設名ラベル（ピンの直下） */}
                     <span className="pointer-events-none absolute left-1/2 top-[52px] -translate-x-1/2 whitespace-nowrap rounded-full border border-gray-200 bg-white/95 px-1.5 py-[1px] text-[10px] font-bold leading-tight text-gray-800 shadow-sm">
                       {f.label ?? meta.label}
                     </span>
