@@ -1,21 +1,26 @@
 "use client";
 
-import { useEffect } from "react";
-import { Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
+import { useEffect, useState } from "react";
+import {
+  Map,
+  AdvancedMarker,
+  useMap,
+  useMapsLibrary,
+} from "@vis.gl/react-google-maps";
 import type { Facility, LatLng, Venue } from "@/types";
 import { FACILITY_META } from "@/config/facilities";
 import { DEFAULT_VENUE_ZOOM, GOOGLE_MAPS_MAP_ID } from "@/lib/constants";
-import { buildDirectionsUrl } from "@/lib/maps";
-import { useGeolocation } from "@/hooks/useGeolocation";
 import { GoogleMapProvider } from "@/components/map/GoogleMapProvider";
 import { FacilityLegend } from "./FacilityLegend";
 
+export type RouteSummary = { distance: string; duration: string };
+
 /**
  * 地図の中心・ズームを制御する内部コントローラ。
- * 優先順位:
- *  ① focusPosition があればそこへズームイン（検索結果への移動）
- *  ② それ以外は「全ピン（＋現在地）」が収まるよう自動でズーム調整（fitBounds）
- *  ③ ピンが無ければ会場の中心を表示
+ *  ① ルート表示中は何もしない（DirectionsRendererがルート全体を映すため）
+ *  ② focusPosition があればそこへズームイン
+ *  ③ それ以外は全ピン（＋現在地）が収まるよう自動ズーム
+ *  ④ ピンが無ければ会場中心
  */
 function MapController({
   venue,
@@ -24,6 +29,7 @@ function MapController({
   focusPosition,
   fitWithCurrent,
   fitToken,
+  routeActive,
 }: {
   venue: Venue;
   facilities: Facility[];
@@ -31,23 +37,22 @@ function MapController({
   focusPosition?: LatLng | null;
   fitWithCurrent: boolean;
   fitToken: number;
+  routeActive: boolean;
 }) {
   const map = useMap();
   useEffect(() => {
     if (!map) return;
+    if (routeActive) return; // ルート描画に任せる
 
-    // ① 検索結果などの単一地点フォーカス
     if (focusPosition) {
       map.panTo(focusPosition);
       map.setZoom(19);
       return;
     }
 
-    // ② 全ピン（必要なら現在地も）を含む範囲を計算
     const pts: LatLng[] = facilities.map((f) => f.position);
     if (fitWithCurrent && currentLocation) pts.push(currentLocation);
 
-    // ③ ピンが無ければ会場中心
     if (pts.length === 0) {
       map.panTo(venue.center);
       map.setZoom(venue.zoom ?? DEFAULT_VENUE_ZOOM);
@@ -61,14 +66,11 @@ function MapController({
     const east = Math.max(...lngs);
     const west = Math.min(...lngs);
 
-    // ほぼ1点ならfitBoundsだと寄りすぎるのでpan+固定ズーム
     if (north - south < 0.0008 && east - west < 0.0008) {
       map.panTo(pts[0]);
       map.setZoom(18);
       return;
     }
-
-    // 端のピンが切れないよう余白(px)を付けて全体表示
     map.fitBounds({ north, south, east, west }, 64);
   }, [
     map,
@@ -78,7 +80,79 @@ function MapController({
     focusPosition,
     fitWithCurrent,
     fitToken,
+    routeActive,
   ]);
+  return null;
+}
+
+/**
+ * 現在地→目的地の徒歩ルートを地図上に描画する。
+ * Directions API を使用（要: Google Cloud で Directions API 有効化）。
+ * 失敗時は onError を呼び、親で外部Googleマップへのフォールバックを促す。
+ */
+function RouteLayer({
+  origin,
+  destination,
+  onSummary,
+  onError,
+}: {
+  origin: LatLng;
+  destination: LatLng;
+  onSummary: (s: RouteSummary | null) => void;
+  onError: () => void;
+}) {
+  const map = useMap();
+  const routesLib = useMapsLibrary("routes");
+  const [renderer, setRenderer] =
+    useState<google.maps.DirectionsRenderer | null>(null);
+
+  useEffect(() => {
+    if (!routesLib || !map) return;
+    const r = new routesLib.DirectionsRenderer({
+      map,
+      suppressMarkers: true, // 自作のピン/現在地ドットを使うのでルートの既定マーカーは消す
+      polylineOptions: {
+        strokeColor: "#2563eb",
+        strokeWeight: 6,
+        strokeOpacity: 0.85,
+      },
+    });
+    setRenderer(r);
+    return () => r.setMap(null);
+  }, [routesLib, map]);
+
+  useEffect(() => {
+    if (!routesLib || !renderer) return;
+    const svc = new routesLib.DirectionsService();
+    let cancelled = false;
+    svc
+      .route({
+        origin,
+        destination,
+        travelMode: google.maps.TravelMode.WALKING,
+      })
+      .then((res) => {
+        if (cancelled) return;
+        renderer.setDirections(res);
+        const leg = res.routes[0]?.legs[0];
+        onSummary(
+          leg
+            ? {
+                distance: leg.distance?.text ?? "",
+                duration: leg.duration?.text ?? "",
+              }
+            : null,
+        );
+      })
+      .catch(() => {
+        if (!cancelled) onError();
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routesLib, renderer, origin.lat, origin.lng, destination.lat, destination.lng]);
+
   return null;
 }
 
@@ -87,7 +161,7 @@ function MapController({
  * - 施設ピン（自作アイコン＋ラベル）を表示
  * - 現在地を青ドットで表示
  * - 全ピン（＋現在地）が収まるよう自動ズーム
- * - 各ピンから「現在地からのルート検索」を Google マップで開く
+ * - ピンをタップ／目的地を選ぶと、現在地からの徒歩ルートを地図上に描画
  */
 export function VenueMap({
   venue,
@@ -96,6 +170,10 @@ export function VenueMap({
   focusPosition,
   fitWithCurrent,
   fitToken,
+  routeDest,
+  onPinClick,
+  onRouteInfo,
+  onRouteError,
 }: {
   venue: Venue;
   facilities: Facility[];
@@ -103,14 +181,12 @@ export function VenueMap({
   focusPosition?: LatLng | null;
   fitWithCurrent: boolean;
   fitToken: number;
+  routeDest?: Facility | null;
+  onPinClick: (f: Facility) => void;
+  onRouteInfo: (s: RouteSummary | null) => void;
+  onRouteError: () => void;
 }) {
-  const geo = useGeolocation();
-  const facilityTypes = facilities.map((f) => f.type);
-
-  async function routeTo(dest: LatLng) {
-    const origin = currentLocation ?? (await geo.request()) ?? undefined;
-    window.open(buildDirectionsUrl(dest, origin, "walking"), "_blank");
-  }
+  const routeActive = Boolean(currentLocation && routeDest);
 
   return (
     <section>
@@ -130,7 +206,18 @@ export function VenueMap({
               focusPosition={focusPosition}
               fitWithCurrent={fitWithCurrent}
               fitToken={fitToken}
+              routeActive={routeActive}
             />
+
+            {/* 徒歩ルート描画 */}
+            {currentLocation && routeDest && (
+              <RouteLayer
+                origin={currentLocation}
+                destination={routeDest.position}
+                onSummary={onRouteInfo}
+                onError={onRouteError}
+              />
+            )}
 
             {/* 現在地（青ドット） */}
             {currentLocation && (
@@ -142,12 +229,13 @@ export function VenueMap({
             {/* 施設ピン */}
             {facilities.map((f) => {
               const meta = FACILITY_META[f.type];
+              const isDest = routeDest?.id === f.id;
               return (
                 <AdvancedMarker
                   key={f.id}
                   position={f.position}
                   title={f.label ?? meta.label}
-                  onClick={() => routeTo(f.position)}
+                  onClick={() => onPinClick(f)}
                 >
                   <div className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -156,7 +244,12 @@ export function VenueMap({
                       alt={meta.label}
                       width={44}
                       height={56}
-                      className="drop-shadow"
+                      className={isDest ? "" : "drop-shadow"}
+                      style={
+                        isDest
+                          ? { filter: "drop-shadow(0 0 6px #2563eb)" }
+                          : undefined
+                      }
                     />
                     <span className="pointer-events-none absolute left-1/2 top-[52px] -translate-x-1/2 whitespace-nowrap rounded-full border border-gray-200 bg-white/95 px-1.5 py-[1px] text-[10px] font-bold leading-tight text-gray-800 shadow-sm">
                       {f.label ?? meta.label}
@@ -169,12 +262,15 @@ export function VenueMap({
         </div>
       </GoogleMapProvider>
 
-      <FacilityLegend types={facilityTypes} />
+      <FacilityLegend types={facilityTypesOf(facilities)} />
 
-      {geo.error && <p className="px-4 text-xs text-red-500">{geo.error}</p>}
       <p className="px-4 pt-1 text-xs text-gray-400">
-        ピンをタップすると、現在地からのルートをGoogleマップで開きます。
+        ピンをタップすると、現在地からの徒歩ルートを地図に表示します（現在地の許可が必要）。
       </p>
     </section>
   );
+}
+
+function facilityTypesOf(facilities: Facility[]) {
+  return facilities.map((f) => f.type);
 }

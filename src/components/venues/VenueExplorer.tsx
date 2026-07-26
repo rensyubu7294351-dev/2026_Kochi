@@ -7,9 +7,10 @@ import type { Facility, LatLng } from "@/types";
 import { VENUES, getVenueBySlug } from "@/data/venues";
 import { fetchFacilitiesByVenue } from "@/lib/facilities";
 import { FACILITY_META } from "@/config/facilities";
+import { buildDirectionsUrl } from "@/lib/maps";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { VenueTabs } from "./VenueTabs";
-import { VenueMap } from "./VenueMap";
+import { VenueMap, type RouteSummary } from "./VenueMap";
 import { VenueSearch, type SearchResult } from "./VenueSearch";
 
 /** キーワードが施設にマッチするか（部分一致・大文字小文字無視） */
@@ -65,6 +66,11 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
   const [fitToken, setFitToken] = useState(0); // 全体表示の再実行トリガー
   const geo = useGeolocation();
 
+  // 徒歩ルート案内
+  const [routeDest, setRouteDest] = useState<Facility | null>(null);
+  const [routeInfo, setRouteInfo] = useState<RouteSummary | null>(null);
+  const [routeError, setRouteError] = useState(false);
+
   // 検索結果（全会場 or 特定会場を対象に、種類・キーワードでしぼる）
   const results = useMemo<SearchResult[] | null>(() => {
     if (!hasQuery) return null;
@@ -103,11 +109,18 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
     window.history.replaceState(null, "", `${url.pathname}${url.search}`);
   }, [active.slug]);
 
+  function clearRoute() {
+    setRouteDest(null);
+    setRouteInfo(null);
+    setRouteError(false);
+  }
+
   function selectVenue(slug: string) {
     setActiveSlug(slug);
     setVenueFilter(slug);
     setFocusPosition(null);
     setFitWithCurrent(false); // 会場切替時はその会場の全ピンを表示
+    clearRoute();
   }
 
   function handleVenueFilter(v: string) {
@@ -116,6 +129,7 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
       setActiveSlug(v);
       setFocusPosition(null);
       setFitWithCurrent(false);
+      clearRoute();
     }
   }
 
@@ -129,6 +143,44 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
   function handleResultClick(r: SearchResult) {
     setActiveSlug(r.venueSlug);
     setFocusPosition(r.facility.position);
+  }
+
+  // 外部Googleマップで徒歩ルートを開く（アプリ内表示ができない時のフォールバック）
+  function openExternalRoute(f: Facility) {
+    window.open(
+      buildDirectionsUrl(f.position, currentLocation ?? undefined, "walking"),
+      "_blank",
+    );
+  }
+
+  // ピンのタップ／目的地選択 → 現在地からの徒歩ルートを地図に表示
+  async function handlePinClick(f: Facility) {
+    setRouteError(false);
+    setRouteInfo(null);
+    let origin = currentLocation;
+    if (!origin) {
+      origin = await geo.request();
+      if (origin) setCurrentLocation(origin);
+    }
+    if (origin) {
+      setRouteDest(f); // アプリ内ルート描画をトリガー
+    } else {
+      openExternalRoute(f); // 現在地が取れない場合は外部へ
+    }
+  }
+
+  function handleSelectDest(id: string) {
+    if (!id) {
+      clearRoute();
+      return;
+    }
+    const f = activeFacilities.find((x) => x.id === id);
+    if (f) handlePinClick(f);
+  }
+
+  function handleRouteError() {
+    setRouteError(true);
+    setRouteInfo(null);
   }
 
   // 現在地を取得し、全ピン＋現在地をまとめて表示
@@ -213,7 +265,57 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
         )}
       </div>
 
-      {/* ⑤ Googleマップ本体 */}
+      {/* ⑤ 徒歩ルート案内先の選択 */}
+      {activeFacilities.length > 0 && (
+        <div className="mt-3 px-4">
+          <div className="flex items-center gap-2">
+            <label className="shrink-0 text-sm text-gray-600">
+              徒歩ルート先
+            </label>
+            <select
+              value={routeDest?.id ?? ""}
+              onChange={(e) => handleSelectDest(e.target.value)}
+              className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+            >
+              <option value="">選択（地図のピンをタップでもOK）</option>
+              {activeFacilities.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.label ?? FACILITY_META[f.type].label}
+                </option>
+              ))}
+            </select>
+            {routeDest && (
+              <button
+                onClick={clearRoute}
+                className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-500"
+              >
+                解除
+              </button>
+            )}
+          </div>
+          {routeInfo && routeDest && (
+            <p className="mt-1 text-sm font-medium text-blue-600">
+              🚶 {routeDest.label ?? FACILITY_META[routeDest.type].label}まで
+              徒歩 約{routeInfo.duration}・{routeInfo.distance}
+            </p>
+          )}
+          {routeError && (
+            <p className="mt-1 text-xs text-red-500">
+              アプリ内でルートを表示できませんでした。
+              {routeDest && (
+                <button
+                  onClick={() => openExternalRoute(routeDest)}
+                  className="ml-1 underline"
+                >
+                  Googleマップで開く
+                </button>
+              )}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* ⑥ Googleマップ本体 */}
       <div className="mt-3">
         <VenueMap
           venue={active}
@@ -222,6 +324,10 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
           focusPosition={focusPosition}
           fitWithCurrent={fitWithCurrent}
           fitToken={fitToken}
+          routeDest={routeDest}
+          onPinClick={handlePinClick}
+          onRouteInfo={setRouteInfo}
+          onRouteError={handleRouteError}
         />
       </div>
     </>
