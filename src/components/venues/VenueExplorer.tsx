@@ -7,7 +7,6 @@ import type { Facility, LatLng } from "@/types";
 import { VENUES, getVenueBySlug } from "@/data/venues";
 import { fetchFacilitiesByVenue } from "@/lib/facilities";
 import { FACILITY_META } from "@/config/facilities";
-import { buildDirectionsUrl } from "@/lib/maps";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { VenueTabs } from "./VenueTabs";
 import { VenueMap, type RouteSummary } from "./VenueMap";
@@ -145,27 +144,14 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
     setFocusPosition(r.facility.position);
   }
 
-  // 外部Googleマップで徒歩ルートを開く（アプリ内表示ができない時のフォールバック）
-  function openExternalRoute(f: Facility) {
-    window.open(
-      buildDirectionsUrl(f.position, currentLocation ?? undefined, "walking"),
-      "_blank",
-    );
-  }
-
-  // ピンのタップ／目的地選択 → 現在地からの徒歩ルートを地図に表示
+  // ピンのタップ／目的地選択 → 現在地からの徒歩ルートを地図に表示（アプリ内で完結）
   async function handlePinClick(f: Facility) {
     setRouteError(false);
     setRouteInfo(null);
-    let origin = currentLocation;
-    if (!origin) {
-      origin = await geo.request();
-      if (origin) setCurrentLocation(origin);
-    }
-    if (origin) {
-      setRouteDest(f); // アプリ内ルート描画をトリガー
-    } else {
-      openExternalRoute(f); // 現在地が取れない場合は外部へ
+    setRouteDest(f); // 選択状態にする（ルート描画は現在地が取れ次第）
+    if (!currentLocation) {
+      const pos = await geo.request();
+      if (pos) setCurrentLocation(pos);
     }
   }
 
@@ -231,9 +217,6 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
         onTypeFilter={setTypeFilter}
         onKeyword={setKeyword}
         onReset={handleReset}
-        onLocate={handleLocate}
-        onShowAll={handleShowAll}
-        locating={geo.loading}
         results={results}
         onResultClick={handleResultClick}
       />
@@ -265,55 +248,79 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
         )}
       </div>
 
-      {/* ⑤ 徒歩ルート案内先の選択 */}
-      {activeFacilities.length > 0 && (
-        <div className="mt-3 px-4">
-          <div className="flex items-center gap-2">
-            <label className="shrink-0 text-sm text-gray-600">
-              徒歩ルート先
-            </label>
-            <select
-              value={routeDest?.id ?? ""}
-              onChange={(e) => handleSelectDest(e.target.value)}
-              className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
-            >
-              <option value="">選択（地図のピンをタップでもOK）</option>
-              {activeFacilities.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.label ?? FACILITY_META[f.type].label}
-                </option>
-              ))}
-            </select>
-            {routeDest && (
-              <button
-                onClick={clearRoute}
-                className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-500"
+      {/* ⑤ 地図コントロール（現在地／全体表示）＋ 徒歩ルート先の選択 */}
+      <div className="mt-3 space-y-2 px-4">
+        {/* 現在地ボタン（徒歩ルート先の真上・全会場共通） */}
+        <div className="flex gap-2">
+          <button
+            onClick={handleLocate}
+            disabled={geo.loading}
+            className="rounded-full bg-blue-500 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {geo.loading ? "取得中..." : "📍 現在地"}
+          </button>
+          <button
+            onClick={handleShowAll}
+            className="rounded-full border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-600"
+          >
+            🗺 全体表示
+          </button>
+        </div>
+
+        {activeFacilities.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2">
+              <label className="shrink-0 text-sm text-gray-600">
+                徒歩ルート先
+              </label>
+              <select
+                value={routeDest?.id ?? ""}
+                onChange={(e) => handleSelectDest(e.target.value)}
+                className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
               >
-                解除
-              </button>
-            )}
-          </div>
-          {routeInfo && routeDest && (
-            <p className="mt-1 text-sm font-medium text-blue-600">
-              🚶 {routeDest.label ?? FACILITY_META[routeDest.type].label}まで
-              徒歩 約{routeInfo.duration}・{routeInfo.distance}
-            </p>
-          )}
-          {routeError && (
-            <p className="mt-1 text-xs text-red-500">
-              アプリ内でルートを表示できませんでした。
+                <option value="">選択（地図のピンをタップでもOK）</option>
+                {activeFacilities.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.label ?? FACILITY_META[f.type].label}
+                  </option>
+                ))}
+              </select>
               {routeDest && (
                 <button
-                  onClick={() => openExternalRoute(routeDest)}
-                  className="ml-1 underline"
+                  onClick={clearRoute}
+                  className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-500"
                 >
-                  Googleマップで開く
+                  解除
                 </button>
               )}
-            </p>
-          )}
-        </div>
-      )}
+            </div>
+            {routeInfo && routeDest && (
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <p className="text-sm font-medium text-blue-600">
+                  🚶 {routeDest.label ?? FACILITY_META[routeDest.type].label}まで
+                  徒歩 約{routeInfo.duration}・{routeInfo.distance}
+                </p>
+                <button
+                  onClick={clearRoute}
+                  className="shrink-0 rounded-full bg-blue-500 px-3 py-1 text-xs font-medium text-white"
+                >
+                  ルート取消
+                </button>
+              </div>
+            )}
+            {routeDest && !currentLocation && !geo.loading && (
+              <p className="mt-1 text-xs text-gray-500">
+                現在地を取得するとルートを表示します。「📍 現在地」を押して位置情報を許可してください。
+              </p>
+            )}
+            {routeError && (
+              <p className="mt-1 text-xs text-red-500">
+                ルートを表示できませんでした。位置情報の許可、またはDirections APIの有効化をご確認ください。
+              </p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ⑥ Googleマップ本体 */}
       <div className="mt-3">
