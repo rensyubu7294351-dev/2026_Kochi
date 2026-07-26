@@ -7,11 +7,8 @@ export default function HomePage() {
     <main className="p-5">
       <header className="mb-6 text-center">
         <h1 className="text-2xl font-bold text-yosakoi">
-          高知よさこい チームマップ
+          七福高知マップ（デモ版）
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          自チーム向け 会場・観光ガイド
-        </p>
       </header>
 
       <nav className="grid gap-4">
