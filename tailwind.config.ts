@@ -20,7 +20,18 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["var(--font-noto-sans-jp)", "sans-serif"],
+        // 端末標準の日本語フォント（Webフォントを読み込まず即表示）
+        sans: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"Hiragino Sans"',
+          '"Hiragino Kaku Gothic ProN"',
+          '"Yu Gothic"',
+          "YuGothic",
+          "Meiryo",
+          '"Noto Sans JP"',
+          "sans-serif",
+        ],
       },
     },
   },

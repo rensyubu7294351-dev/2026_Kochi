@@ -7,7 +7,7 @@ import type {
   TaxiCompany,
   TaxiRow,
 } from "@/types";
-import { supabase, isSupabaseConfigured } from "./supabase";
+import { sbSelect } from "./supabaseRest";
 
 /** 空の営業時間（未設定時のフォールバック） */
 export const EMPTY_HOURS: OpeningHours = {
@@ -64,40 +64,18 @@ export function rowToTaxi(r: TaxiRow): TaxiCompany {
 // ---- 取得（ユーザー・管理画面 共通の読み取り） ----
 
 export async function fetchSento(): Promise<Sento[]> {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
-    .from("sento")
-    .select("*")
-    .order("created_at", { ascending: true });
-  if (error) {
-    console.error("銭湯の取得に失敗:", error.message);
-    return [];
-  }
-  return ((data ?? []) as SentoRow[]).map(rowToSento);
+  const rows = await sbSelect<SentoRow>("sento?select=*&order=created_at.asc");
+  return rows.map(rowToSento);
 }
 
 export async function fetchLaundry(): Promise<Laundry[]> {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
-    .from("laundry")
-    .select("*")
-    .order("created_at", { ascending: true });
-  if (error) {
-    console.error("コインランドリーの取得に失敗:", error.message);
-    return [];
-  }
-  return ((data ?? []) as LaundryRow[]).map(rowToLaundry);
+  const rows = await sbSelect<LaundryRow>(
+    "laundry?select=*&order=created_at.asc",
+  );
+  return rows.map(rowToLaundry);
 }
 
 export async function fetchTaxi(): Promise<TaxiCompany[]> {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
-    .from("taxi")
-    .select("*")
-    .order("created_at", { ascending: true });
-  if (error) {
-    console.error("タクシーの取得に失敗:", error.message);
-    return [];
-  }
-  return ((data ?? []) as TaxiRow[]).map(rowToTaxi);
+  const rows = await sbSelect<TaxiRow>("taxi?select=*&order=created_at.asc");
+  return rows.map(rowToTaxi);
 }

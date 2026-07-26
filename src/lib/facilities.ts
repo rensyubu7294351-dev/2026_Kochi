@@ -1,5 +1,5 @@
 import type { Facility, FacilityRow } from "@/types";
-import { supabase, isSupabaseConfigured } from "./supabase";
+import { sbSelect } from "./supabaseRest";
 
 /** DBの行(snake_case) → アプリ内のFacility型 に変換 */
 export function rowToFacility(row: FacilityRow): Facility {
@@ -19,20 +19,11 @@ export function rowToFacility(row: FacilityRow): Facility {
 export async function fetchFacilitiesByVenue(): Promise<
   Record<string, Facility[]>
 > {
-  if (!isSupabaseConfigured) return {};
-
-  const { data, error } = await supabase
-    .from("facilities")
-    .select("*")
-    .order("created_at", { ascending: true });
-
-  if (error) {
-    console.error("施設ピンの取得に失敗:", error.message);
-    return {};
-  }
-
+  const rows = await sbSelect<FacilityRow>(
+    "facilities?select=*&order=created_at.asc",
+  );
   const grouped: Record<string, Facility[]> = {};
-  for (const row of (data ?? []) as FacilityRow[]) {
+  for (const row of rows) {
     (grouped[row.venue_slug] ??= []).push(rowToFacility(row));
   }
   return grouped;
@@ -42,15 +33,9 @@ export async function fetchFacilitiesByVenue(): Promise<
 export async function fetchVenueFacilityRows(
   venueSlug: string,
 ): Promise<FacilityRow[]> {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
-    .from("facilities")
-    .select("*")
-    .eq("venue_slug", venueSlug)
-    .order("created_at", { ascending: true });
-  if (error) {
-    console.error("施設ピンの取得に失敗:", error.message);
-    return [];
-  }
-  return (data ?? []) as FacilityRow[];
+  return sbSelect<FacilityRow>(
+    `facilities?select=*&venue_slug=eq.${encodeURIComponent(
+      venueSlug,
+    )}&order=created_at.asc`,
+  );
 }
