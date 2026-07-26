@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 82" width="64" height="82">
+  <defs><filter id="s" x="-40%" y="-30%" width="180%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="1.6" flood-opacity="0.3"/></filter>
+    <clipPath id="fl"><rect x="26.7" y="16.5" width="15.3" height="12.5" rx="1"/></clipPath></defs>
+  <path filter="url(#s)" d="M32 4C18.7 4 8 14.7 8 28c0 14.9 15.1 33 22.2 40.6a2.4 2.4 0 0 0 3.6 0C40.9 61 56 42.9 56 28 56 14.7 45.3 4 32 4z" fill="#7c3aed" stroke="#fff" stroke-width="2.5"/>
+  <circle cx="32" cy="28" r="16.5" fill="#fff"/>
+  <rect x="23.5" y="15.5" width="3.2" height="24" rx="1.6" fill="#7c3aed"/>
+  <g clip-path="url(#fl)">
+    <rect x="26.7" y="16.5" width="15.3" height="12.5" fill="#7c3aed"/>
+    <g fill="#fff">
+      <rect x="26.7" y="16.5" width="3.83" height="3.13"/>
+      <rect x="34.36" y="16.5" width="3.83" height="3.13"/>
+      <rect x="30.53" y="19.63" width="3.83" height="3.13"/>
+      <rect x="38.19" y="19.63" width="3.83" height="3.13"/>
+      <rect x="26.7" y="22.76" width="3.83" height="3.13"/>
+      <rect x="34.36" y="22.76" width="3.83" height="3.13"/>
+      <rect x="30.53" y="25.89" width="3.83" height="3.13"/>
+      <rect x="38.19" y="25.89" width="3.83" height="3.13"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,86 @@
+import { NextResponse } from "next/server";
+import { checkAdminHeader } from "@/lib/adminAuth";
+import { getAdminClient, isAdminConfigured } from "@/lib/supabaseAdmin";
+import { FACILITY_META } from "@/config/facilities";
+import type { FacilityType } from "@/types";
+
+const VALID_TYPES = Object.keys(FACILITY_META) as FacilityType[];
+
+/**
+ * 施設ピンの新規追加。
+ * パスワードは x-admin-password ヘッダーでサーバー側照合。
+ */
+export async function POST(req: Request) {
+  if (!checkAdminHeader(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  if (!isAdminConfigured()) {
+    return NextResponse.json(
+      { error: "Supabaseが未設定です（.env.localのSUPABASE設定を確認）" },
+      { status: 503 },
+    );
+  }
+
+  const body = await req.json().catch(() => null);
+  if (!body) {
+    return NextResponse.json({ error: "invalid body" }, { status: 400 });
+  }
+
+  const { venueSlug, type, label, note, lat, lng } = body;
+
+  if (
+    typeof venueSlug !== "string" ||
+    !VALID_TYPES.includes(type) ||
+    typeof lat !== "number" ||
+    typeof lng !== "number"
+  ) {
+    return NextResponse.json(
+      { error: "必須項目（venueSlug/type/lat/lng）が不正です" },
+      { status: 400 },
+    );
+  }
+
+  const supabase = getAdminClient();
+  const { data, error } = await supabase
+    .from("facilities")
+    .insert({
+      venue_slug: venueSlug,
+      type,
+      label: label?.trim() || null,
+      note: note?.trim() || null,
+      lat,
+      lng,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  return NextResponse.json({ data }, { status: 201 });
+}
+
+/** 施設ピンの削除（?id=... ） */
+export async function DELETE(req: Request) {
+  if (!checkAdminHeader(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  if (!isAdminConfigured()) {
+    return NextResponse.json(
+      { error: "Supabaseが未設定です（.env.localのSUPABASE設定を確認）" },
+      { status: 503 },
+    );
+  }
+
+  const id = new URL(req.url).searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ error: "id is required" }, { status: 400 });
+  }
+
+  const supabase = getAdminClient();
+  const { error } = await supabase.from("facilities").delete().eq("id", id);
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true });
+}

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 82" width="64" height="82">
+  <defs><filter id="s" x="-40%" y="-30%" width="180%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="1.6" flood-opacity="0.3"/></filter></defs>
+  <path filter="url(#s)" d="M32 4C18.7 4 8 14.7 8 28c0 14.9 15.1 33 22.2 40.6a2.4 2.4 0 0 0 3.6 0C40.9 61 56 42.9 56 28 56 14.7 45.3 4 32 4z" fill="#ff6fae" stroke="#fff" stroke-width="2.5"/>
+  <circle cx="32" cy="28" r="16.5" fill="#fff"/>
+  <!-- 建物 -->
+  <rect x="22" y="27" width="20" height="12.5" rx="1.5" fill="#ff6fae"/>
+  <!-- ドア -->
+  <rect x="28.5" y="31.5" width="7" height="8" rx="1" fill="#fff"/>
+  <!-- 日よけ -->
+  <path d="M20 20.5h24l1.6 6.5H18.4z" fill="#ff6fae"/>
+  <path d="M18.9 27l3-6.5M24.9 27l3-6.5M30.9 27l3-6.5M36.9 27l3-6.5" stroke="#fff" stroke-width="2.4"/>
+</svg>

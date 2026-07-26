@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 82" width="64" height="82">
+  <defs><filter id="s" x="-40%" y="-30%" width="180%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="1.6" flood-opacity="0.3"/></filter></defs>
+  <path filter="url(#s)" d="M32 4C18.7 4 8 14.7 8 28c0 14.9 15.1 33 22.2 40.6a2.4 2.4 0 0 0 3.6 0C40.9 61 56 42.9 56 28 56 14.7 45.3 4 32 4z" fill="#22b573" stroke="#fff" stroke-width="2.5"/>
+  <circle cx="32" cy="28" r="16.5" fill="#fff"/>
+  <!-- おにぎり -->
+  <path d="M32 16.2c1.6 0 2.9 1 3.6 2.3l7.9 15.4c.9 1.8-.4 3.7-2.3 3.7H22.8c-1.9 0-3.2-1.9-2.3-3.7l7.9-15.4c.7-1.3 2-2.3 3.6-2.3z" fill="#fff" stroke="#22b573" stroke-width="2.4"/>
+  <rect x="26" y="31" width="12" height="6.5" rx="1" fill="#22b573"/>
+  <circle cx="29" cy="27" r="1.05" fill="#22b573"/>
+  <circle cx="35" cy="27" r="1.05" fill="#22b573"/>
+  <path d="M30.4 29.6c1 .9 2.2 .9 3.2 0" fill="none" stroke="#22b573" stroke-width="1.3" stroke-linecap="round"/>
+</svg>

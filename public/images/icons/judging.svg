@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 82" width="64" height="82">
+  <defs><filter id="s" x="-40%" y="-30%" width="180%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="1.6" flood-opacity="0.3"/></filter></defs>
+  <path filter="url(#s)" d="M32 4C18.7 4 8 14.7 8 28c0 14.9 15.1 33 22.2 40.6a2.4 2.4 0 0 0 3.6 0C40.9 61 56 42.9 56 28 56 14.7 45.3 4 32 4z" fill="#4f46e5" stroke="#fff" stroke-width="2.5"/>
+  <circle cx="32" cy="28" r="16.5" fill="#fff"/>
+  <!-- クリップボード -->
+  <rect x="22.5" y="18" width="19" height="21" rx="2.5" fill="#4f46e5"/>
+  <rect x="28" y="15.3" width="8" height="4.6" rx="2.3" fill="#4f46e5"/>
+  <rect x="29" y="16.4" width="6" height="3" rx="1.5" fill="#fff"/>
+  <!-- 得点の星 -->
+  <path d="M32 22.6l1.9 3.85 4.25.62-3.07 3 .72 4.23L32 34.32l-3.8 2 .72-4.23-3.07-3 4.25-.62z" fill="#ffd23f"/>
+</svg>
