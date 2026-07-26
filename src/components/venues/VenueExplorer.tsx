@@ -155,15 +155,6 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
     }
   }
 
-  function handleSelectDest(id: string) {
-    if (!id) {
-      clearRoute();
-      return;
-    }
-    const f = activeFacilities.find((x) => x.id === id);
-    if (f) handlePinClick(f);
-  }
-
   function handleRouteError() {
     setRouteError(true);
     setRouteInfo(null);
@@ -248,9 +239,8 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
         )}
       </div>
 
-      {/* ⑤ 地図コントロール（現在地／全体表示）＋ 徒歩ルート先の選択 */}
+      {/* ⑤ 地図コントロール（現在地／全体表示）＋ ルート状態 */}
       <div className="mt-3 space-y-2 px-4">
-        {/* 現在地ボタン（徒歩ルート先の真上・全会場共通） */}
         <div className="flex gap-2">
           <button
             onClick={handleLocate}
@@ -267,57 +257,24 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
           </button>
         </div>
 
-        {activeFacilities.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2">
-              <label className="shrink-0 text-sm text-gray-600">
-                徒歩ルート先
-              </label>
-              <select
-                value={routeDest?.id ?? ""}
-                onChange={(e) => handleSelectDest(e.target.value)}
-                className="min-w-0 flex-1 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
-              >
-                <option value="">選択（地図のピンをタップでもOK）</option>
-                {activeFacilities.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.label ?? FACILITY_META[f.type].label}
-                  </option>
-                ))}
-              </select>
-              {routeDest && (
-                <button
-                  onClick={clearRoute}
-                  className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-500"
-                >
-                  解除
-                </button>
-              )}
-            </div>
-            {routeInfo && routeDest && (
-              <div className="mt-1 flex items-center justify-between gap-2">
-                <p className="text-sm font-medium text-blue-600">
-                  🚶 {routeDest.label ?? FACILITY_META[routeDest.type].label}まで
-                  徒歩 約{routeInfo.duration}・{routeInfo.distance}
-                </p>
-                <button
-                  onClick={clearRoute}
-                  className="shrink-0 rounded-full bg-blue-500 px-3 py-1 text-xs font-medium text-white"
-                >
-                  ルート取消
-                </button>
-              </div>
-            )}
-            {routeDest && !currentLocation && !geo.loading && (
-              <p className="mt-1 text-xs text-gray-500">
-                現在地を取得するとルートを表示します。「📍 現在地」を押して位置情報を許可してください。
-              </p>
-            )}
-            {routeError && (
-              <p className="mt-1 text-xs text-red-500">
-                ルートを表示できませんでした。位置情報の許可、またはDirections APIの有効化をご確認ください。
-              </p>
-            )}
+        {/* ピンをタップして目的地を選ぶと、ここにルート状態が出る */}
+        {routeDest && (
+          <div className="flex items-center justify-between gap-2 rounded-lg bg-blue-50 px-3 py-2">
+            <p className="text-sm font-medium text-blue-700">
+              {routeInfo
+                ? `🚶 ${routeDest.label ?? FACILITY_META[routeDest.type].label}まで 徒歩 約${routeInfo.duration}・${routeInfo.distance}`
+                : routeError
+                  ? "ルートを表示できませんでした（位置情報の許可 / Directions API をご確認ください）"
+                  : !currentLocation
+                    ? "現在地を取得しています…「📍 現在地」で位置情報を許可してください"
+                    : "ルートを計算中…"}
+            </p>
+            <button
+              onClick={clearRoute}
+              className="shrink-0 rounded-full bg-blue-500 px-3 py-1 text-xs font-medium text-white"
+            >
+              ルート取消
+            </button>
           </div>
         )}
       </div>
