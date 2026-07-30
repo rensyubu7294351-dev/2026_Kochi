@@ -7,24 +7,24 @@ import {
   useMap,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
-import type { Facility, LatLng, Venue } from "@/types";
+import type { Facility, FacilityType, LatLng, Venue } from "@/types";
 import { FACILITY_META } from "@/config/facilities";
 import { DEFAULT_VENUE_ZOOM, GOOGLE_MAPS_MAP_ID } from "@/lib/constants";
 import { GoogleMapProvider } from "@/components/map/GoogleMapProvider";
-import { FacilityLegend } from "./FacilityLegend";
 
 export type RouteSummary = { distance: string; duration: string };
 
 /**
  * 地図の中心・ズームを制御する内部コントローラ。
- *  ① ルート表示中は何もしない（DirectionsRendererがルート全体を映すため）
+ *  ① ルート表示中は何もしない（DirectionsRendererに任せる）
  *  ② focusPosition があればそこへズームイン
- *  ③ それ以外は全ピン（＋現在地）が収まるよう自動ズーム
+ *  ③ 施設タイプ強調中はそのタイプのピンに合わせる／通常は全ピン（＋現在地）
  *  ④ ピンが無ければ会場中心
  */
 function MapController({
   venue,
   facilities,
+  highlightType,
   currentLocation,
   focusPosition,
   fitWithCurrent,
@@ -33,6 +33,7 @@ function MapController({
 }: {
   venue: Venue;
   facilities: Facility[];
+  highlightType: FacilityType | null;
   currentLocation?: LatLng | null;
   focusPosition?: LatLng | null;
   fitWithCurrent: boolean;
@@ -42,7 +43,7 @@ function MapController({
   const map = useMap();
   useEffect(() => {
     if (!map) return;
-    if (routeActive) return; // ルート描画に任せる
+    if (routeActive) return;
 
     if (focusPosition) {
       map.panTo(focusPosition);
@@ -50,7 +51,10 @@ function MapController({
       return;
     }
 
-    const pts: LatLng[] = facilities.map((f) => f.position);
+    const source = highlightType
+      ? facilities.filter((f) => f.type === highlightType)
+      : facilities;
+    const pts: LatLng[] = source.map((f) => f.position);
     if (fitWithCurrent && currentLocation) pts.push(currentLocation);
 
     if (pts.length === 0) {
@@ -76,6 +80,7 @@ function MapController({
     map,
     venue,
     facilities,
+    highlightType,
     currentLocation,
     focusPosition,
     fitWithCurrent,
@@ -85,11 +90,7 @@ function MapController({
   return null;
 }
 
-/**
- * 現在地→目的地の徒歩ルートを地図上に描画する。
- * Directions API を使用（要: Google Cloud で Directions API 有効化）。
- * 失敗時は onError を呼び、親で外部Googleマップへのフォールバックを促す。
- */
+/** 現在地→目的地の徒歩ルートを地図上に描画（Directions API）。 */
 function RouteLayer({
   origin,
   destination,
@@ -110,7 +111,7 @@ function RouteLayer({
     if (!routesLib || !map) return;
     const r = new routesLib.DirectionsRenderer({
       map,
-      suppressMarkers: true, // 自作のピン/現在地ドットを使うのでルートの既定マーカーは消す
+      suppressMarkers: true,
       polylineOptions: {
         strokeColor: "#2563eb",
         strokeWeight: 6,
@@ -159,13 +160,14 @@ function RouteLayer({
 /**
  * 個別会場のマップ。
  * - 施設ピン（自作アイコン＋ラベル）を表示
+ * - highlightType のピンを強調、他は減光
  * - 現在地を青ドットで表示
- * - 全ピン（＋現在地）が収まるよう自動ズーム
- * - ピンをタップ／目的地を選ぶと、現在地からの徒歩ルートを地図上に描画
+ * - ピンをタップすると現在地からの徒歩ルートを地図に描画
  */
 export function VenueMap({
   venue,
   facilities,
+  highlightType,
   currentLocation,
   focusPosition,
   fitWithCurrent,
@@ -177,6 +179,7 @@ export function VenueMap({
 }: {
   venue: Venue;
   facilities: Facility[];
+  highlightType: FacilityType | null;
   currentLocation?: LatLng | null;
   focusPosition?: LatLng | null;
   fitWithCurrent: boolean;
@@ -202,6 +205,7 @@ export function VenueMap({
             <MapController
               venue={venue}
               facilities={facilities}
+              highlightType={highlightType}
               currentLocation={currentLocation}
               focusPosition={focusPosition}
               fitWithCurrent={fitWithCurrent}
@@ -209,7 +213,6 @@ export function VenueMap({
               routeActive={routeActive}
             />
 
-            {/* 徒歩ルート描画 */}
             {currentLocation && routeDest && (
               <RouteLayer
                 origin={currentLocation}
@@ -221,7 +224,11 @@ export function VenueMap({
 
             {/* 現在地（青ドット） */}
             {currentLocation && (
-              <AdvancedMarker position={currentLocation} title="現在地">
+              <AdvancedMarker
+                position={currentLocation}
+                title="現在地"
+                zIndex={30}
+              >
                 <span className="block h-4 w-4 rounded-full border-2 border-white bg-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.3)]" />
               </AdvancedMarker>
             )}
@@ -230,25 +237,37 @@ export function VenueMap({
             {facilities.map((f) => {
               const meta = FACILITY_META[f.type];
               const isDest = routeDest?.id === f.id;
+              const dimmed = highlightType != null && f.type !== highlightType;
+              const emphasized =
+                highlightType != null && f.type === highlightType;
               return (
                 <AdvancedMarker
                   key={f.id}
                   position={f.position}
                   title={f.label ?? meta.label}
                   onClick={() => onPinClick(f)}
+                  zIndex={isDest ? 25 : emphasized ? 20 : undefined}
                 >
-                  <div className="relative">
+                  <div
+                    className={
+                      "relative transition " +
+                      (dimmed ? "opacity-30 " : "") +
+                      (emphasized ? "scale-125 " : "")
+                    }
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`/images/icons/${meta.icon}`}
                       alt={meta.label}
                       width={44}
                       height={56}
-                      className={isDest ? "" : "drop-shadow"}
+                      className="drop-shadow"
                       style={
                         isDest
                           ? { filter: "drop-shadow(0 0 6px #2563eb)" }
-                          : undefined
+                          : emphasized
+                            ? { filter: "drop-shadow(0 0 6px #e4002b)" }
+                            : undefined
                       }
                     />
                     <span className="pointer-events-none absolute left-1/2 top-[52px] -translate-x-1/2 whitespace-nowrap rounded-full border border-gray-200 bg-white/95 px-1.5 py-[1px] text-[10px] font-bold leading-tight text-gray-800 shadow-sm">
@@ -261,16 +280,6 @@ export function VenueMap({
           </Map>
         </div>
       </GoogleMapProvider>
-
-      <FacilityLegend types={facilityTypesOf(facilities)} />
-
-      <p className="px-4 pt-1 text-xs text-gray-400">
-        ピンをタップすると、現在地からの徒歩ルートを地図に表示します（現在地の許可が必要）。
-      </p>
     </section>
   );
-}
-
-function facilityTypesOf(facilities: Facility[]) {
-  return facilities.map((f) => f.type);
 }
