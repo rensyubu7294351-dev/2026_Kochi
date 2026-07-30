@@ -46,6 +46,12 @@ export function AdminVenueEditor({ password }: { password: string }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  // 既存ピンの編集
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editType, setEditType] = useState<FacilityType>(FACILITY_ORDER[0]);
+  const [editLabel, setEditLabel] = useState("");
+  const [editNote, setEditNote] = useState("");
+
   const reload = useCallback(async () => {
     setLoading(true);
     setRows(await fetchVenueFacilityRows(activeSlug));
@@ -105,6 +111,39 @@ export function AdminVenueEditor({ password }: { password: string }) {
     });
     if (res.ok) reload();
     else setMessage("削除に失敗しました");
+  }
+
+  function startEdit(r: FacilityRow) {
+    setEditingId(r.id);
+    setEditType(r.type);
+    setEditLabel(r.label ?? "");
+    setEditNote(r.note ?? "");
+    setMessage(null);
+  }
+
+  async function handleUpdate() {
+    if (!editingId) return;
+    const res = await fetch("/api/facilities", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "x-admin-password": password,
+      },
+      body: JSON.stringify({
+        id: editingId,
+        type: editType,
+        label: editLabel,
+        note: editNote,
+      }),
+    });
+    if (res.ok) {
+      setEditingId(null);
+      setMessage("更新しました");
+      reload();
+    } else {
+      const j = await res.json().catch(() => ({}));
+      setMessage(`更新に失敗: ${j.error ?? res.status}`);
+    }
   }
 
   return (
@@ -241,30 +280,87 @@ export function AdminVenueEditor({ password }: { password: string }) {
           <ul className="grid gap-2">
             {rows.map((r) => {
               const meta = FACILITY_META[r.type];
+              const editing = editingId === r.id;
               return (
                 <li
                   key={r.id}
-                  className="flex items-center gap-2 rounded-lg border border-gray-100 bg-white p-2 text-sm shadow-sm"
+                  className="rounded-lg border border-gray-100 bg-white p-2 text-sm shadow-sm"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/images/icons/${meta.icon}`}
-                    alt=""
-                    width={22}
-                    height={28}
-                  />
-                  <div className="flex-1">
-                    <p className="font-medium">{r.label || meta.label}</p>
-                    {r.note && (
-                      <p className="text-xs text-gray-500">{r.note}</p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => handleDelete(r.id)}
-                    className="rounded-full border border-red-200 px-3 py-1 text-xs text-red-500"
-                  >
-                    削除
-                  </button>
+                  {editing ? (
+                    // 編集フォーム（アイコン種別・ラベル・メモ）
+                    <div className="space-y-2">
+                      <label className="block text-xs text-gray-500">
+                        アイコン（種類）
+                      </label>
+                      <select
+                        value={editType}
+                        onChange={(e) =>
+                          setEditType(e.target.value as FacilityType)
+                        }
+                        className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+                      >
+                        {FACILITY_ORDER.map((t) => (
+                          <option key={t} value={t}>
+                            {FACILITY_META[t].label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        value={editLabel}
+                        onChange={(e) => setEditLabel(e.target.value)}
+                        placeholder="ラベル名（任意）"
+                        className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+                      />
+                      <input
+                        value={editNote}
+                        onChange={(e) => setEditNote(e.target.value)}
+                        placeholder="メモ（任意）"
+                        className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleUpdate}
+                          className="flex-1 rounded-lg bg-yosakoi py-1.5 text-xs font-bold text-white"
+                        >
+                          更新
+                        </button>
+                        <button
+                          onClick={() => setEditingId(null)}
+                          className="rounded-lg border border-gray-200 px-4 py-1.5 text-xs text-gray-500"
+                        >
+                          キャンセル
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`/images/icons/${meta.icon}`}
+                        alt=""
+                        width={22}
+                        height={28}
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium">{r.label || meta.label}</p>
+                        {r.note && (
+                          <p className="text-xs text-gray-500">{r.note}</p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => startEdit(r)}
+                        className="rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-600"
+                      >
+                        編集
+                      </button>
+                      <button
+                        onClick={() => handleDelete(r.id)}
+                        className="rounded-full border border-red-200 px-3 py-1 text-xs text-red-500"
+                      >
+                        削除
+                      </button>
+                    </div>
+                  )}
                 </li>
               );
             })}

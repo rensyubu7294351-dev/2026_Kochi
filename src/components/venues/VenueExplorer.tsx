@@ -44,11 +44,22 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
   >({});
   useEffect(() => {
     let cancelled = false;
-    fetchFacilitiesByVenue().then((data) => {
-      if (!cancelled) setFacilitiesByVenue(data);
-    });
+    const load = () =>
+      fetchFacilitiesByVenue().then((data) => {
+        if (!cancelled) setFacilitiesByVenue(data);
+      });
+    load();
+    // 画面に戻ってきた時に最新を取り直す（管理画面での更新を素早く反映）
+    const onFocus = () => load();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 

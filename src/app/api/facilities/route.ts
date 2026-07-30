@@ -60,6 +60,62 @@ export async function POST(req: Request) {
   return NextResponse.json({ data }, { status: 201 });
 }
 
+/**
+ * 施設ピンの更新（アイコン種別・ラベル・メモ）。
+ * body: { id, type?, label?, note? }
+ */
+export async function PATCH(req: Request) {
+  if (!checkAdminHeader(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  if (!isAdminConfigured()) {
+    return NextResponse.json(
+      { error: "Supabaseが未設定です（.env.localのSUPABASE設定を確認）" },
+      { status: 503 },
+    );
+  }
+
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body.id !== "string") {
+    return NextResponse.json({ error: "id is required" }, { status: 400 });
+  }
+
+  const patch: Record<string, unknown> = {};
+  if (body.type !== undefined) {
+    if (!VALID_TYPES.includes(body.type)) {
+      return NextResponse.json({ error: "invalid type" }, { status: 400 });
+    }
+    patch.type = body.type;
+  }
+  if (body.label !== undefined) {
+    patch.label =
+      typeof body.label === "string" && body.label.trim()
+        ? body.label.trim()
+        : null;
+  }
+  if (body.note !== undefined) {
+    patch.note =
+      typeof body.note === "string" && body.note.trim()
+        ? body.note.trim()
+        : null;
+  }
+  if (Object.keys(patch).length === 0) {
+    return NextResponse.json({ error: "更新項目がありません" }, { status: 400 });
+  }
+
+  const supabase = getAdminClient();
+  const { data, error } = await supabase
+    .from("facilities")
+    .update(patch)
+    .eq("id", body.id)
+    .select()
+    .single();
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  return NextResponse.json({ data });
+}
+
 /** 施設ピンの削除（?id=... ） */
 export async function DELETE(req: Request) {
   if (!checkAdminHeader(req)) {
