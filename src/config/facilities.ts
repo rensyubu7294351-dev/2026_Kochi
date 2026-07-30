@@ -14,17 +14,20 @@ export const FACILITY_META: Record<
   FacilityType,
   { label: string; icon: string; color: string; short: string }
 > = {
+  // 救護所と休憩所は統合し、同じ医療アイコンで表示する
   "first-aid": {
-    label: "救護所",
+    label: "救護所・休憩所",
     icon: "first-aid.svg",
     color: "#ff4d6d",
     short: "救護",
   },
+  // 旧「休憩所」データ互換用（救護所と同一表示にフォールバック）。
+  // 選択肢(FACILITY_ORDER)には出さない。
   "rest-area": {
-    label: "休憩所",
-    icon: "rest-area.svg",
-    color: "#34c759",
-    short: "休憩",
+    label: "救護所・休憩所",
+    icon: "first-aid.svg",
+    color: "#ff4d6d",
+    short: "救護",
   },
   "toilet-public": {
     label: "公衆トイレ",
@@ -100,7 +103,6 @@ export const FACILITY_ORDER: FacilityType[] = [
   "dance-end",
   "reception",
   "first-aid",
-  "rest-area",
   "toilet-public",
   "toilet-temporary",
   "bus-waiting",
