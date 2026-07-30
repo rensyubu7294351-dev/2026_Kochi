@@ -15,9 +15,18 @@ export function isAdminConfigured(): boolean {
   );
 }
 
+/**
+ * 環境変数のキー値を安全化する。
+ * 誤って改行や値の重複貼り付けが混入しても、最初の有効なトークン（JWT）だけを使う。
+ * （JWT には空白が含まれないので、空白区切りの先頭を取れば正しい値になる）
+ */
+function sanitizeKey(v: string | undefined): string {
+  return (v ?? "").trim().split(/\s+/)[0] ?? "";
+}
+
 export function getAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
+  const serviceKey = sanitizeKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
   if (!url || !serviceKey) {
     throw new Error(
       "Supabaseの環境変数が未設定です（NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY）",
