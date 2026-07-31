@@ -72,6 +72,18 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
   const [routeInfo, setRouteInfo] = useState<RouteSummary | null>(null);
   const [routeError, setRouteError] = useState(false);
 
+  // パレード（踊り開始位置→終了位置）
+  const [showCourse, setShowCourse] = useState(false);
+  const danceStart = useMemo(
+    () => activeFacilities.find((f) => f.type === "dance-start") ?? null,
+    [activeFacilities],
+  );
+  const danceEnd = useMemo(
+    () => activeFacilities.find((f) => f.type === "dance-end") ?? null,
+    [activeFacilities],
+  );
+  const canShowCourse = Boolean(danceStart && danceEnd);
+
   // 選択中の会場を URL に反映
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -90,8 +102,16 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
     setFocusPosition(null);
     setFitWithCurrent(false);
     setHighlightType(null);
+    setShowCourse(false);
     clearRoute();
   }
+
+  function toggleCourse() {
+    setShowCourse((v) => !v);
+    setHighlightType(null);
+    setFocusPosition(null);
+  }
+  const noop = () => {};
 
   // 施設チップのタップ → その施設タイプを強調表示（もう一度で解除）
   function handleSelectType(t: FacilityType | null) {
@@ -200,7 +220,33 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
           >
             🗺 全体表示
           </button>
+          {canShowCourse && (
+            <button
+              onClick={toggleCourse}
+              className={
+                "rounded-full px-4 py-1.5 text-sm font-bold transition " +
+                (showCourse
+                  ? "bg-yosakoi text-white"
+                  : "border border-yosakoi text-yosakoi")
+              }
+            >
+              🏁 パレード
+            </button>
+          )}
         </div>
+
+        {/* パレードの案内 */}
+        {showCourse && (
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-yosakoi/30 bg-yosakoi/5 px-3 py-2">
+            <p className="text-sm font-bold text-yosakoi">🏁 パレード</p>
+            <button
+              onClick={toggleCourse}
+              className="shrink-0 rounded-full bg-yosakoi px-3 py-1 text-xs font-medium text-white"
+            >
+              非表示
+            </button>
+          </div>
+        )}
 
         {/* 施設アイコン（現在地の下・タップで強調） */}
         <FacilityChips
@@ -263,9 +309,12 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
           fitWithCurrent={fitWithCurrent}
           fitToken={fitToken}
           routeDest={routeDest}
+          courseFrom={showCourse ? (danceStart?.position ?? null) : null}
+          courseTo={showCourse ? (danceEnd?.position ?? null) : null}
           onPinClick={handlePinClick}
           onRouteInfo={setRouteInfo}
           onRouteError={handleRouteError}
+          onCourseInfo={noop}
         />
       </div>
     </>

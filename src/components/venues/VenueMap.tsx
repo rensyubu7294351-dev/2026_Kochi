@@ -14,13 +14,7 @@ import { GoogleMapProvider } from "@/components/map/GoogleMapProvider";
 
 export type RouteSummary = { distance: string; duration: string };
 
-/**
- * 地図の中心・ズームを制御する内部コントローラ。
- *  ① ルート表示中は何もしない（DirectionsRendererに任せる）
- *  ② focusPosition があればそこへズームイン
- *  ③ 施設タイプ強調中はそのタイプのピンに合わせる／通常は全ピン（＋現在地）
- *  ④ ピンが無ければ会場中心
- */
+/** 地図の中心・ズームを制御する内部コントローラ。 */
 function MapController({
   venue,
   facilities,
@@ -30,6 +24,8 @@ function MapController({
   fitWithCurrent,
   fitToken,
   routeActive,
+  courseFrom,
+  courseTo,
 }: {
   venue: Venue;
   facilities: Facility[];
@@ -39,11 +35,13 @@ function MapController({
   fitWithCurrent: boolean;
   fitToken: number;
   routeActive: boolean;
+  courseFrom?: LatLng | null;
+  courseTo?: LatLng | null;
 }) {
   const map = useMap();
   useEffect(() => {
     if (!map) return;
-    if (routeActive) return;
+    if (routeActive) return; // 現在地→ピンのルートに任せる
 
     if (focusPosition) {
       map.panTo(focusPosition);
@@ -51,11 +49,17 @@ function MapController({
       return;
     }
 
-    const source = highlightType
-      ? facilities.filter((f) => f.type === highlightType)
-      : facilities;
-    const pts: LatLng[] = source.map((f) => f.position);
-    if (fitWithCurrent && currentLocation) pts.push(currentLocation);
+    // 演舞コース表示中は開始〜終了に合わせる
+    let pts: LatLng[];
+    if (courseFrom && courseTo) {
+      pts = [courseFrom, courseTo];
+    } else {
+      const source = highlightType
+        ? facilities.filter((f) => f.type === highlightType)
+        : facilities;
+      pts = source.map((f) => f.position);
+      if (fitWithCurrent && currentLocation) pts.push(currentLocation);
+    }
 
     if (pts.length === 0) {
       map.panTo(venue.center);
@@ -86,19 +90,25 @@ function MapController({
     fitWithCurrent,
     fitToken,
     routeActive,
+    courseFrom,
+    courseTo,
   ]);
   return null;
 }
 
-/** 現在地→目的地の徒歩ルートを地図上に描画（Directions API）。 */
+/** 2地点間の徒歩ルートを地図上に描画（Directions API）。色・自動移動は指定可能。 */
 function RouteLayer({
   origin,
   destination,
+  color,
+  preserveViewport,
   onSummary,
   onError,
 }: {
   origin: LatLng;
   destination: LatLng;
+  color: string;
+  preserveViewport?: boolean;
   onSummary: (s: RouteSummary | null) => void;
   onError: () => void;
 }) {
@@ -112,14 +122,16 @@ function RouteLayer({
     const r = new routesLib.DirectionsRenderer({
       map,
       suppressMarkers: true,
+      preserveViewport: preserveViewport ?? false,
       polylineOptions: {
-        strokeColor: "#2563eb",
+        strokeColor: color,
         strokeWeight: 6,
         strokeOpacity: 0.85,
       },
     });
     setRenderer(r);
     return () => r.setMap(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routesLib, map]);
 
   useEffect(() => {
@@ -159,10 +171,9 @@ function RouteLayer({
 
 /**
  * 個別会場のマップ。
- * - 施設ピン（自作アイコン＋ラベル）を表示
- * - highlightType のピンを強調、他は減光
- * - 現在地を青ドットで表示
- * - ピンをタップすると現在地からの徒歩ルートを地図に描画
+ * - 施設ピン（自作アイコン＋ラベル）を表示、highlightType を強調
+ * - 現在地→タップしたピンの徒歩ルート（青）
+ * - 演舞コース：踊り開始位置→終了位置の徒歩ルート（赤）
  */
 export function VenueMap({
   venue,
@@ -173,9 +184,12 @@ export function VenueMap({
   fitWithCurrent,
   fitToken,
   routeDest,
+  courseFrom,
+  courseTo,
   onPinClick,
   onRouteInfo,
   onRouteError,
+  onCourseInfo,
 }: {
   venue: Venue;
   facilities: Facility[];
@@ -185,9 +199,12 @@ export function VenueMap({
   fitWithCurrent: boolean;
   fitToken: number;
   routeDest?: Facility | null;
+  courseFrom?: LatLng | null;
+  courseTo?: LatLng | null;
   onPinClick: (f: Facility) => void;
   onRouteInfo: (s: RouteSummary | null) => void;
   onRouteError: () => void;
+  onCourseInfo: (s: RouteSummary | null) => void;
 }) {
   const routeActive = Boolean(currentLocation && routeDest);
 
@@ -201,6 +218,7 @@ export function VenueMap({
             mapId={GOOGLE_MAPS_MAP_ID || undefined}
             gestureHandling="greedy"
             disableDefaultUI={false}
+            clickableIcons={false}
           >
             <MapController
               venue={venue}
@@ -211,12 +229,28 @@ export function VenueMap({
               fitWithCurrent={fitWithCurrent}
               fitToken={fitToken}
               routeActive={routeActive}
+              courseFrom={courseFrom}
+              courseTo={courseTo}
             />
 
+            {/* 演舞コース（踊り開始→終了・赤） */}
+            {courseFrom && courseTo && (
+              <RouteLayer
+                origin={courseFrom}
+                destination={courseTo}
+                color="#e4002b"
+                preserveViewport
+                onSummary={onCourseInfo}
+                onError={() => onCourseInfo(null)}
+              />
+            )}
+
+            {/* 現在地→ピンの徒歩ルート（青） */}
             {currentLocation && routeDest && (
               <RouteLayer
                 origin={currentLocation}
                 destination={routeDest.position}
+                color="#2563eb"
                 onSummary={onRouteInfo}
                 onError={onRouteError}
               />
