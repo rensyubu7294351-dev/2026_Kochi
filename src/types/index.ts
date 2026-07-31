@@ -31,7 +31,8 @@ export type FacilityType =
   | "convenience" // コンビニ
   | "shop" // お店
   | "judging" // 審査会場
-  | "water-station"; // 給水所
+  | "water-station" // 給水所
+  | "cheer-point"; // 頑張りポイント（あと少し！の目印）
 
 /** 1つの施設ピン（アプリ内での扱い） */
 export type Facility = {

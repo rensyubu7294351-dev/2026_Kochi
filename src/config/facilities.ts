@@ -95,6 +95,12 @@ export const FACILITY_META: Record<
     color: "#06b6d4",
     short: "給水",
   },
+  "cheer-point": {
+    label: "頑張りポイント",
+    icon: "cheer-point.svg",
+    color: "#ff5a1f",
+    short: "頑張り",
+  },
 };
 
 /** 凡例やフィルタで使う、表示順を固定した施設タイプ一覧 */
@@ -111,4 +117,5 @@ export const FACILITY_ORDER: FacilityType[] = [
   "shop",
   "judging",
   "water-station",
+  "cheer-point",
 ];
