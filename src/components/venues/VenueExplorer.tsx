@@ -216,24 +216,38 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
           👆 地図のピンをタップすると、現在地からの徒歩ルートが表示されます
         </div>
 
-        {/* ルート状態 */}
+        {/* 選択中のピン情報（名前・メモを強調表示）＋ルート状態 */}
         {routeDest && (
-          <div className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-blue-50 px-3 py-2">
-            <p className="text-sm font-medium text-blue-700">
+          <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-sm font-bold text-blue-800">
+                📍 {routeDest.label ?? FACILITY_META[routeDest.type].label}
+              </p>
+              <button
+                onClick={clearRoute}
+                className="shrink-0 rounded-full bg-blue-500 px-3 py-1 text-xs font-medium text-white"
+              >
+                ✕ 閉じる
+              </button>
+            </div>
+
+            {/* メモ（あれば強調表示） */}
+            {routeDest.note && (
+              <p className="mt-1.5 rounded-md bg-yellow-100 px-2.5 py-1.5 text-sm font-bold text-yellow-900 shadow-sm">
+                📝 {routeDest.note}
+              </p>
+            )}
+
+            {/* ルート状態 */}
+            <p className="mt-1.5 text-sm font-medium text-blue-700">
               {routeInfo
-                ? `🚶 ${routeDest.label ?? FACILITY_META[routeDest.type].label}まで 徒歩 約${routeInfo.duration}・${routeInfo.distance}`
+                ? `🚶 徒歩 約${routeInfo.duration}・${routeInfo.distance}`
                 : routeError
                   ? "ルートを表示できませんでした（位置情報の許可 / Directions API をご確認ください）"
                   : !currentLocation
                     ? "現在地を取得しています…「📍 現在地」で位置情報を許可してください"
                     : "ルートを計算中…"}
             </p>
-            <button
-              onClick={clearRoute}
-              className="shrink-0 rounded-full bg-blue-500 px-3 py-1 text-xs font-medium text-white"
-            >
-              ルート取消
-            </button>
           </div>
         )}
       </div>
