@@ -19,10 +19,22 @@ export const HOME_MENU: NavItem[] = [
     emoji: "🗾",
   },
   {
-    title: "高知便利情報",
-    description: "銭湯・コインランドリー・タクシー会社",
-    href: "/tourism",
+    title: "銭湯マップ",
+    description: "高知市内の銭湯をまとめた地図",
+    href: "/tourism/sento",
     emoji: "♨️",
+  },
+  {
+    title: "コインランドリーマップ",
+    description: "高知市内のコインランドリーをまとめた地図",
+    href: "/tourism/laundry",
+    emoji: "🧺",
+  },
+  {
+    title: "タクシー会社一覧",
+    description: "市内で呼べるタクシーの電話番号",
+    href: "/tourism/taxi",
+    emoji: "🚕",
   },
   {
     title: "お役立ち（ライフハック）",
@@ -30,27 +42,5 @@ export const HOME_MENU: NavItem[] = [
     href: LIFEHACK_APP_URL,
     external: true,
     emoji: "💡",
-  },
-];
-
-/** 観光編のサブメニュー */
-export const TOURISM_MENU: NavItem[] = [
-  {
-    title: "銭湯マップ",
-    description: "営業時間付き",
-    href: "/tourism/sento",
-    emoji: "♨️",
-  },
-  {
-    title: "コインランドリー",
-    description: "営業時間付き",
-    href: "/tourism/laundry",
-    emoji: "🧺",
-  },
-  {
-    title: "タクシー会社",
-    description: "市内で呼べる会社一覧",
-    href: "/tourism/taxi",
-    emoji: "🚕",
   },
 ];

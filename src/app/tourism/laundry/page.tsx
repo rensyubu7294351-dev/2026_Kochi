@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SpotListClient } from "@/components/tourism/SpotListClient";
+import { MapPageClient } from "@/components/tourism/MapPageClient";
 import { SectionTabs } from "@/components/layout/SectionTabs";
 
 export const metadata = { title: "コインランドリー | 高知便利情報" };
@@ -10,14 +10,14 @@ export default function LaundryPage() {
       <SectionTabs />
       <div className="p-4">
         <div className="mb-4">
-          <Link href="/tourism" className="text-sm text-gray-500">
-            ← 高知便利情報
+          <Link href="/" className="text-sm text-gray-500">
+            ← ホーム
           </Link>
         </div>
         <h1 className="mb-4 text-xl font-bold">
-          コインランドリー（営業時間付き）
+          高知市内 コインランドリーマップ
         </h1>
-        <SpotListClient kind="laundry" />
+        <MapPageClient kind="laundry" />
       </div>
     </main>
   );

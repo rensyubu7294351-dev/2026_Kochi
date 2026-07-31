@@ -10,8 +10,8 @@ export default function TaxiPage() {
       <SectionTabs />
       <div className="p-4">
         <div className="mb-4">
-          <Link href="/tourism" className="text-sm text-gray-500">
-            ← 便利情報
+          <Link href="/" className="text-sm text-gray-500">
+            ← ホーム
           </Link>
         </div>
         <h1 className="mb-4 text-xl font-bold">
