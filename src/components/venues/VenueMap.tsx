@@ -190,6 +190,7 @@ export function VenueMap({
   onRouteInfo,
   onRouteError,
   onCourseInfo,
+  onCourseError,
 }: {
   venue: Venue;
   facilities: Facility[];
@@ -205,6 +206,7 @@ export function VenueMap({
   onRouteInfo: (s: RouteSummary | null) => void;
   onRouteError: () => void;
   onCourseInfo: (s: RouteSummary | null) => void;
+  onCourseError: () => void;
 }) {
   const routeActive = Boolean(currentLocation && routeDest);
 
@@ -241,7 +243,7 @@ export function VenueMap({
                 color="#e4002b"
                 preserveViewport
                 onSummary={onCourseInfo}
-                onError={() => onCourseInfo(null)}
+                onError={onCourseError}
               />
             )}
 

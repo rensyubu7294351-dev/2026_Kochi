@@ -74,6 +74,7 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
 
   // パレード（踊り開始位置→終了位置）
   const [showCourse, setShowCourse] = useState(false);
+  const [courseError, setCourseError] = useState(false);
   const danceStart = useMemo(
     () => activeFacilities.find((f) => f.type === "dance-start") ?? null,
     [activeFacilities],
@@ -108,10 +109,10 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
 
   function toggleCourse() {
     setShowCourse((v) => !v);
+    setCourseError(false);
     setHighlightType(null);
     setFocusPosition(null);
   }
-  const noop = () => {};
 
   // 施設チップのタップ → その施設タイプを強調表示（もう一度で解除）
   function handleSelectType(t: FacilityType | null) {
@@ -238,7 +239,11 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
         {/* パレードの案内 */}
         {showCourse && (
           <div className="flex items-center justify-between gap-2 rounded-lg border border-yosakoi/30 bg-yosakoi/5 px-3 py-2">
-            <p className="text-sm font-bold text-yosakoi">🏁 パレード</p>
+            <p className="text-sm font-bold text-yosakoi">
+              {courseError
+                ? "🏁 パレードのルートを取得できませんでした（Directions APIの設定をご確認ください）"
+                : "🏁 パレード"}
+            </p>
             <button
               onClick={toggleCourse}
               className="shrink-0 rounded-full bg-yosakoi px-3 py-1 text-xs font-medium text-white"
@@ -314,7 +319,8 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
           onPinClick={handlePinClick}
           onRouteInfo={setRouteInfo}
           onRouteError={handleRouteError}
-          onCourseInfo={noop}
+          onCourseInfo={() => setCourseError(false)}
+          onCourseError={() => setCourseError(true)}
         />
       </div>
     </>
