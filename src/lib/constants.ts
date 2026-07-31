@@ -11,5 +11,7 @@ export const GOOGLE_MAPS_API_KEY =
   process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
 export const GOOGLE_MAPS_MAP_ID =
   process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ?? "";
+// 既存のライフハックアプリのURL（環境変数が未設定・空でも既定URLで開けるように || を使用）
 export const LIFEHACK_APP_URL =
-  process.env.NEXT_PUBLIC_LIFEHACK_APP_URL ?? "#";
+  process.env.NEXT_PUBLIC_LIFEHACK_APP_URL ||
+  "https://729summerlifehacks.vercel.app/api/auth/line";
