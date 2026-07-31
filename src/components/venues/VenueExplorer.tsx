@@ -284,19 +284,19 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
 
             {/* メモ（あれば強調表示） */}
             {routeDest.note && (
-              <p className="mt-1.5 rounded-md bg-yellow-100 px-2.5 py-1.5 text-sm font-bold text-yellow-900 shadow-sm">
+              <p className="mt-1.5 rounded-md bg-yellow-100 px-2.5 py-2 text-sm font-bold leading-relaxed text-yellow-900 shadow-sm">
                 📝 {routeDest.note}
               </p>
             )}
 
-            {/* ルート状態 */}
-            <p className="mt-1.5 text-sm font-medium text-blue-700">
+            {/* ルート状態（メモとは区切り線で分離） */}
+            <p className="mt-2 border-t border-blue-200 pt-2 text-xs font-medium text-blue-600">
               {routeInfo
-                ? `🚶 徒歩 約${routeInfo.duration}・${routeInfo.distance}`
+                ? `🚶 現在地から 徒歩 約${routeInfo.duration}・${routeInfo.distance}`
                 : routeError
                   ? "ルートを表示できませんでした（位置情報の許可 / Directions API をご確認ください）"
                   : !currentLocation
-                    ? "現在地を取得しています…「📍 現在地」で位置情報を許可してください"
+                    ? "📍「現在地」を押して位置情報を許可するとルートを表示します"
                     : "ルートを計算中…"}
             </p>
           </div>
