@@ -117,10 +117,20 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
   // 施設チップのタップ → その施設タイプを強調表示（もう一度で解除）
   function handleSelectType(t: FacilityType | null) {
     setHighlightType(t);
+    setShowCourse(false); // パレードと排他
+    setCourseError(false);
     setFocusPosition(null);
     setFitWithCurrent(false);
     setFitToken((n) => n + 1); // 強調タイプにズームし直す
   }
+
+  // パレード中は開始/終了ピンだけを地図に出す（他アイコンは非表示）
+  const mapFacilities = useMemo(() => {
+    if (!showCourse) return activeFacilities;
+    return activeFacilities.filter(
+      (f) => f.type === "dance-start" || f.type === "dance-end",
+    );
+  }, [showCourse, activeFacilities]);
 
   // ピンのタップ → 現在地からの徒歩ルートを地図に表示（アプリ内で完結）
   async function handlePinClick(f: Facility) {
@@ -221,19 +231,6 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
           >
             🗺 全体表示
           </button>
-          {canShowCourse && (
-            <button
-              onClick={toggleCourse}
-              className={
-                "rounded-full px-4 py-1.5 text-sm font-bold transition " +
-                (showCourse
-                  ? "bg-yosakoi text-white"
-                  : "border border-yosakoi text-yosakoi")
-              }
-            >
-              🏁 パレード
-            </button>
-          )}
         </div>
 
         {/* パレードの案内 */}
@@ -258,6 +255,9 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
           types={presentTypes}
           selected={highlightType}
           onSelect={handleSelectType}
+          paradeAvailable={canShowCourse}
+          paradeActive={showCourse}
+          onToggleParade={toggleCourse}
         />
       </div>
 
@@ -307,7 +307,7 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
       <div className="mt-3">
         <VenueMap
           venue={active}
-          facilities={activeFacilities}
+          facilities={mapFacilities}
           highlightType={highlightType}
           currentLocation={currentLocation}
           focusPosition={focusPosition}
