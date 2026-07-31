@@ -2,10 +2,10 @@ import Link from "next/link";
 import { TOURISM_MENU } from "@/config/navigation";
 
 export const metadata = {
-  title: "高知観光編 | 高知よさこい チームマップ",
+  title: "高知便利情報 | 高知よさこい チームマップ",
 };
 
-/** 観光編トップ：銭湯 / コインランドリー / タクシーへのハブ */
+/** 高知便利スポットトップ：銭湯 / コインランドリー / タクシーへのハブ */
 export default function TourismPage() {
   return (
     <main className="p-4">
@@ -14,9 +14,9 @@ export default function TourismPage() {
           ← ホーム
         </Link>
       </div>
-      <h1 className="mb-1 text-xl font-bold">高知観光編</h1>
+      <h1 className="mb-1 text-xl font-bold">高知便利スポット</h1>
       <p className="mb-4 text-sm text-gray-500">
-        自チーム向けの生活・移動サポート情報
+        七福向けのサポート情報
       </p>
 
       <nav className="grid gap-3">

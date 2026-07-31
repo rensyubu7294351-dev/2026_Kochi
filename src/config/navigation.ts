@@ -19,7 +19,7 @@ export const HOME_MENU: NavItem[] = [
     emoji: "🗾",
   },
   {
-    title: "高知観光編",
+    title: "高知便利情報",
     description: "銭湯・コインランドリー・タクシー会社",
     href: "/tourism",
     emoji: "♨️",
