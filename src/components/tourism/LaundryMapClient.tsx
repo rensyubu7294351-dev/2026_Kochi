@@ -272,8 +272,8 @@ export function LaundryMapClient({
                 </button>
                 {geo.error && (
                   <p className="mt-2 text-xs font-medium text-red-500">
-                    現在地を取得できませんでした。LINE等のアプリ内ブラウザでは使えないことがあります。右上メニューから
-                    Safari / Chrome で開き直し、位置情報を「許可」してください。
+                    現在地を取得できませんでした。  <br />お使いのスマホの「...」マークからChrom、またはsafariで開き直し、 <br />
+                    再度ピン留めした場所をタップして位置情報を「許可」すれば確認ができます。。
                   </p>
                 )}
               </>
