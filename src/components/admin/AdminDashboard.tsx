@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AdminVenueEditor } from "./AdminVenueEditor";
 import { AdminMapPageEditor } from "./AdminMapPageEditor";
+import { AdminLaundryEditor } from "./AdminLaundryEditor";
 import { AdminTaxiEditor } from "./AdminTaxiEditor";
 
 type Section = "venues" | "sento" | "laundry" | "taxi";
@@ -79,9 +80,7 @@ export function AdminDashboard({
       {section === "sento" && (
         <AdminMapPageEditor kind="sento" password={password} />
       )}
-      {section === "laundry" && (
-        <AdminMapPageEditor kind="laundry" password={password} />
-      )}
+      {section === "laundry" && <AdminLaundryEditor password={password} />}
       {section === "taxi" && <AdminTaxiEditor password={password} />}
     </main>
   );

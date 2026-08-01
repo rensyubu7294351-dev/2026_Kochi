@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPageClient } from "@/components/tourism/MapPageClient";
+import { LaundryMapClient } from "@/components/tourism/LaundryMapClient";
 import { SectionTabs } from "@/components/layout/SectionTabs";
 
 export const metadata = { title: "コインランドリー | 高知便利情報" };
@@ -17,7 +17,7 @@ export default function LaundryPage() {
         <h1 className="mb-4 text-xl font-bold">
           高知市内 コインランドリーマップ
         </h1>
-        <MapPageClient kind="laundry" />
+        <LaundryMapClient />
       </div>
     </main>
   );
