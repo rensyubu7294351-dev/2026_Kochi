@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useDragControls } from "motion/react";
 
 /**
@@ -8,6 +10,9 @@ import { AnimatePresence, motion, useDragControls } from "motion/react";
  * - 上部のつまみを下へスワイプ（またはフリック）すると閉じる
  * - オーバーレイ表示なので地図や一覧を押し下げない（レイアウトが動かない）
  * - 下部タブバー（z-30）の背後から出るため、タブバーは常に見えて押せる
+ * - createPortal で body 直下に描画する。祖先に transform アニメーション等が
+ *   あると position:fixed がビューポート基準にならず「ページ最下部」に
+ *   描画されてしまうブラウザ仕様を回避するため（必ず画面下端に出す）。
  */
 export function BottomSheet({
   open,
@@ -20,7 +25,12 @@ export function BottomSheet({
 }) {
   const dragControls = useDragControls();
 
-  return (
+  // SSR中は document が無いため、マウント後にのみポータルを描画する
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -54,6 +64,7 @@ export function BottomSheet({
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
