@@ -191,7 +191,7 @@ export function LaundryMapClient({
 
       {/* 操作ガイド */}
       <div className="rounded-lg border border-yosakoi/30 bg-yosakoi/5 px-3 py-2 text-sm font-medium text-yosakoi">
-        👆 地図のピンをタップすると、現在地からの徒歩ルートが表示されます
+        👇Googleマップ上のピンをタップすると、現在地からの徒歩ルートが表示されます
       </div>
 
       {/* 選択中のピン情報とルート案内は「別々のカード」で分離（演舞会場と同じ） */}
