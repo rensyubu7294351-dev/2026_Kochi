@@ -222,7 +222,6 @@ export function VenueExplorer({
             </span>
           )}
         </div>
-        <p className="text-sm text-gray-500">{active.address}</p>
         {active.courseLength !== undefined && (
           <p className="mt-0.5 text-sm font-medium text-kochi-sea">
             {active.courseLength === "stage"
