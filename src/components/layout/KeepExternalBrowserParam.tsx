@@ -22,15 +22,31 @@ export function KeepExternalBrowserParam() {
 
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (url.searchParams.get("openExternalBrowser") !== "1") {
-      url.searchParams.set("openExternalBrowser", "1");
-      const isLine = /Line\//i.test(navigator.userAgent || "");
-      if (isLine) {
-        // LINE内ブラウザ: 実ナビゲーションさせるとLINEが外部ブラウザを起動する。
-        // 遷移後はパラメータが付いているため再実行されず、ループしない。
+    const isLine = /Line\//i.test(navigator.userAgent || "");
+
+    // LINE内ブラウザで開かれたら、パラメータの有無に関係なく1回だけ
+    // openExternalBrowser=1 付きURLへ実ナビゲーションし、LINEに
+    // 外部ブラウザ（ユーザーの既定ブラウザ）を自動起動させる。
+    // 「1回だけ」にするのは、外部起動に失敗する環境で無限リロードに
+    // ならないため（失敗時は InAppBrowserNotice のボタンが保険になる）。
+    if (isLine) {
+      let canTry = false;
+      try {
+        if (sessionStorage.getItem("extBrowserTried") !== "1") {
+          sessionStorage.setItem("extBrowserTried", "1");
+          canTry = sessionStorage.getItem("extBrowserTried") === "1";
+        }
+      } catch {}
+      if (canTry) {
+        url.searchParams.set("openExternalBrowser", "1");
         window.location.replace(url.toString());
         return;
       }
+    }
+
+    // 通常ブラウザ: 共有用にURLへパラメータを常時付与（表示・履歴に影響しない）
+    if (url.searchParams.get("openExternalBrowser") !== "1") {
+      url.searchParams.set("openExternalBrowser", "1");
       window.history.replaceState(null, "", url.toString());
     }
 
