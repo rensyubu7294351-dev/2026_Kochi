@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { BottomSheet } from "@/components/layout/BottomSheet";
+import { InAppBrowserNotice } from "@/components/layout/InAppBrowserNotice";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import type { Facility, FacilityType, LatLng } from "@/types";
@@ -92,13 +93,6 @@ export function VenueExplorer({
     [activeFacilities],
   );
   const canShowCourse = Boolean(danceStart && danceEnd);
-
-  // LINE / Instagram などアプリ内ブラウザ検知（現在地が使えないため案内する）
-  const [inAppBrowser, setInAppBrowser] = useState(false);
-  useEffect(() => {
-    const ua = navigator.userAgent || "";
-    setInAppBrowser(/Line|FBAN|FBAV|Instagram/i.test(ua));
-  }, []);
 
   // 選択中の会場を URL に反映
   useEffect(() => {
@@ -249,14 +243,8 @@ export function VenueExplorer({
           </button>
         </div>
 
-        {/* アプリ内ブラウザ（LINE等）は現在地が使えない案内 */}
-        {inAppBrowser && (
-          <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
-            ⚠️ 現在地が取得できない場合は「…」メニューから
-          <span className="font-bold">「Safari / Chrome で開く」</span>
-          を選んでください。
-          </p>
-        )}
+        {/* アプリ内ブラウザ（LINE等）の検知と外部ブラウザへの誘導 */}
+        <InAppBrowserNotice />
 
         {/* パレードの案内 */}
         {showCourse && (

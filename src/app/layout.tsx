@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { preconnect } from "react-dom";
 import { SUPABASE_URL } from "@/lib/supabaseEnv";
+import { KeepExternalBrowserParam } from "@/components/layout/KeepExternalBrowserParam";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -30,6 +32,10 @@ export default function RootLayout({
     <html lang="ja">
       {/* フォントは端末標準を使用（Webフォントを読み込まず高速表示） */}
       <body className="font-sans">
+        {/* 全URLに ?openExternalBrowser=1 を常時付与（LINE対策） */}
+        <Suspense fallback={null}>
+          <KeepExternalBrowserParam />
+        </Suspense>
         <div className="mx-auto min-h-dvh max-w-[var(--max-content-width)] bg-white shadow-sm">
           {children}
         </div>

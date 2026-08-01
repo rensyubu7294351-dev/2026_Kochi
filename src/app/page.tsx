@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HOME_MENU } from "@/config/navigation";
+import { InAppBrowserNotice } from "@/components/layout/InAppBrowserNotice";
 
 /** ホーム画面：各ページへのハブ */
 export default function HomePage() {
@@ -10,6 +11,11 @@ export default function HomePage() {
           七福高知アプリ
         </h1>
       </header>
+
+      {/* LINE等のアプリ内ブラウザで開かれた場合の外部ブラウザ誘導 */}
+      <div className="mb-4">
+        <InAppBrowserNotice />
+      </div>
 
       <nav className="grid gap-4">
         {HOME_MENU.map((item, i) => {

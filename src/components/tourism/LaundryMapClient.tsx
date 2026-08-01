@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BottomSheet } from "@/components/layout/BottomSheet";
+import { InAppBrowserNotice } from "@/components/layout/InAppBrowserNotice";
 import { Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import type { Laundry, LatLng } from "@/types";
 import { fetchLaundry } from "@/lib/tourism";
@@ -85,13 +86,6 @@ export function LaundryMapClient({
   const [routeDest, setRouteDest] = useState<Laundry | null>(null);
   const [routeInfo, setRouteInfo] = useState<RouteSummary | null>(null);
   const [routeError, setRouteError] = useState(false);
-
-  // LINE / Instagram などアプリ内ブラウザ検知（現在地が使えないため案内する）
-  const [inAppBrowser, setInAppBrowser] = useState(false);
-  useEffect(() => {
-    const ua = navigator.userAgent || "";
-    setInAppBrowser(/Line|FBAN|FBAV|Instagram/i.test(ua));
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -181,14 +175,8 @@ export function LaundryMapClient({
         </button>
       </div>
 
-      {/* アプリ内ブラウザ（LINE等）は現在地が使えない案内 */}
-      {inAppBrowser && (
-        <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
-          ⚠️ 現在地が取得できない場合は「…」メニューから
-          <span className="font-bold">「Safari / Chrome で開く」</span>
-          を選んでください。
-        </p>
-      )}
+      {/* アプリ内ブラウザ（LINE等）の検知と外部ブラウザへの誘導 */}
+      <InAppBrowserNotice />
 
       {/* 操作ガイド */}
       <div className="rounded-lg border border-yosakoi/30 bg-yosakoi/5 px-3 py-2 text-sm font-medium text-yosakoi">
