@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { BottomSheet } from "@/components/layout/BottomSheet";
 import { InAppBrowserNotice } from "@/components/layout/InAppBrowserNotice";
+import { LocationErrorNotice } from "@/components/layout/LocationErrorNotice";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import type { Facility, FacilityType, LatLng } from "@/types";
@@ -364,12 +365,7 @@ export function VenueExplorer({
                       ? "現在地を取得中…"
                       : "📍 現在地を取得してルートを表示"}
                   </button>
-                  {geo.error && (
-                    <p className="mt-2 text-xs font-medium text-red-500">
-                    現在地を取得できませんでした。  <br />お使いのスマホの「...」マークからChrom、またはsafariで開き直し、 <br />
-                    再度ピン留めした場所をタップして位置情報を「許可」すれば確認ができます。
-                    </p>
-                  )}
+                  {geo.error && <LocationErrorNotice />}
                 </>
               )}
             </div>

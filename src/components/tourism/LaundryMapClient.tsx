@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BottomSheet } from "@/components/layout/BottomSheet";
 import { InAppBrowserNotice } from "@/components/layout/InAppBrowserNotice";
+import { LocationErrorNotice } from "@/components/layout/LocationErrorNotice";
 import { Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import type { Laundry, LatLng } from "@/types";
 import { fetchLaundry } from "@/lib/tourism";
@@ -270,12 +271,7 @@ export function LaundryMapClient({
                     ? "現在地を取得中…"
                     : "📍 現在地を取得してルートを表示"}
                 </button>
-                {geo.error && (
-                  <p className="mt-2 text-xs font-medium text-red-500">
-                    現在地を取得できませんでした。  <br />お使いのスマホの「...」マークからChrom、またはsafariで開き直し、 <br />
-                    再度ピン留めした場所をタップして位置情報を「許可」すれば確認ができます。。
-                  </p>
-                )}
+                {geo.error && <LocationErrorNotice />}
               </>
             )}
           </div>

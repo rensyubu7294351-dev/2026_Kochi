@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BottomSheet } from "@/components/layout/BottomSheet";
 import { InAppBrowserNotice } from "@/components/layout/InAppBrowserNotice";
+import { LocationErrorNotice } from "@/components/layout/LocationErrorNotice";
 import { Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import type { Sento, LatLng } from "@/types";
 import { fetchSento } from "@/lib/tourism";
@@ -341,12 +342,7 @@ export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
                     ? "現在地を取得中…"
                     : "📍 現在地を取得してルートを表示"}
                 </button>
-                {geo.error && (
-                  <p className="mt-2 text-xs font-medium text-red-500">
-                    現在地を取得できませんでした。LINE等のアプリ内ブラウザでは使えないことがあります。
-                    Safari / Chrome で開き直し、位置情報を「許可」してください。
-                  </p>
-                )}
+                {geo.error && <LocationErrorNotice />}
               </>
             )}
           </div>
