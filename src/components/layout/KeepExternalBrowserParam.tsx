@@ -24,17 +24,21 @@ export function KeepExternalBrowserParam() {
     const url = new URL(window.location.href);
     const isLine = /Line\//i.test(navigator.userAgent || "");
 
-    // LINE内ブラウザで開かれたら、パラメータの有無に関係なく1回だけ
-    // openExternalBrowser=1 付きURLへ実ナビゲーションし、LINEに
-    // 外部ブラウザ（ユーザーの既定ブラウザ）を自動起動させる。
-    // 「1回だけ」にするのは、外部起動に失敗する環境で無限リロードに
-    // ならないため（失敗時は InAppBrowserNotice のボタンが保険になる）。
+    // LINE内ブラウザで開かれたら、openExternalBrowser=1 付きURLへ
+    // 実ナビゲーションし、LINEに外部ブラウザ（ユーザーの既定ブラウザ）を
+    // 自動起動させる。試行はタイムスタンプ方式で「前回から7分経過」したら
+    // 再試行を許可する。LINEがWebViewを再利用してフラグが残っても自然に
+    // 復帰でき、外部起動が効かない環境でも7分に1回のリロードで済むため
+    // 無限ループにならない（失敗時は InAppBrowserNotice のボタンが保険）。
     if (isLine) {
+      const RETRY_MS = 7 * 60 * 1000;
       let canTry = false;
       try {
-        if (sessionStorage.getItem("extBrowserTried") !== "1") {
-          sessionStorage.setItem("extBrowserTried", "1");
-          canTry = sessionStorage.getItem("extBrowserTried") === "1";
+        const last = Number(sessionStorage.getItem("extBrowserTriedAt") ?? 0);
+        if (!last || Date.now() - last > RETRY_MS) {
+          sessionStorage.setItem("extBrowserTriedAt", String(Date.now()));
+          // 書き込みが成功した時だけ試行（失敗時のループを防ぐ）
+          canTry = sessionStorage.getItem("extBrowserTriedAt") !== null;
         }
       } catch {}
       if (canTry) {
