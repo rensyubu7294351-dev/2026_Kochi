@@ -175,8 +175,9 @@ export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
 
       {/* 最終受付の注意（全店共通） */}
       <p className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs font-bold leading-relaxed text-red-700">
-        ⚠️ 最終入場は閉店の30分〜1時間前のことが多いです。
-        深夜に向かう場合は公式サイトで最終受付を確認してから出発するのが確実です。
+        ⚠️ 最終入場は閉店の30分〜1時間前のことが多いです。<br />
+        ⚠️ 「高知」ぽかぽか温泉は今年は事前予約制です。8/10-12は事前予約してない人は入れません<br />
+        深夜に向かう場合は公式サイトで最終受付を確認してから出発するのが確実です
       </p>
 
       {/* 現在地／全体表示 */}
