@@ -266,32 +266,33 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
           👆 地図のピンをタップすると、現在地からの徒歩ルートが表示されます
         </div>
 
-        {/* 選択中のピン情報（名前・メモを強調表示）＋ルート状態 */}
+        {/* 選択中のピン情報とルート案内は「別々のカード」で分離 */}
         {routeDest && (
-          <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
-            <div className="flex items-start justify-between gap-2">
-              <p className="text-sm font-bold text-blue-800">
-                📍 {routeDest.label ?? FACILITY_META[routeDest.type].label}
-              </p>
-              <button
-                onClick={clearRoute}
-                className="shrink-0 rounded-full bg-blue-500 px-3 py-1 text-xs font-medium text-white"
-              >
-                ✕ 閉じる
-              </button>
+          <div className="mt-2 space-y-2">
+            {/* ① ピン情報カード（白＋メモは黄色） */}
+            <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-bold text-gray-900">
+                  📍 {routeDest.label ?? FACILITY_META[routeDest.type].label}
+                </p>
+                <button
+                  onClick={clearRoute}
+                  className="shrink-0 rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-600"
+                >
+                  ✕ 閉じる
+                </button>
+              </div>
+              {routeDest.note && (
+                <p className="mt-2 rounded-md border border-yellow-300 bg-yellow-100 px-2.5 py-2 text-sm font-bold leading-relaxed text-yellow-900">
+                  📝 {routeDest.note}
+                </p>
+              )}
             </div>
 
-            {/* メモ（あれば強調表示・黄色の枠で明確に分離） */}
-            {routeDest.note && (
-              <p className="mt-2 rounded-md border border-yellow-300 bg-yellow-100 px-2.5 py-2 text-sm font-bold leading-relaxed text-yellow-900 shadow-sm">
-                📝 {routeDest.note}
-              </p>
-            )}
-
-            {/* ルート状態（メモとは区切り線で分離） */}
-            <div className="mt-2 border-t border-blue-200 pt-2">
+            {/* ② ルート／現在地カード（青・別物） */}
+            <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
               {routeInfo ? (
-                <p className="text-xs font-medium text-blue-600">
+                <p className="text-sm font-medium text-blue-700">
                   🚶 現在地から 徒歩 約{routeInfo.duration}・{routeInfo.distance}
                 </p>
               ) : routeError ? (
@@ -300,7 +301,7 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
                   をご確認ください）
                 </p>
               ) : currentLocation ? (
-                <p className="text-xs font-medium text-blue-600">
+                <p className="text-sm font-medium text-blue-700">
                   ルートを計算中…
                 </p>
               ) : (
