@@ -20,10 +20,13 @@ export const revalidate = 60;
 export default async function VenuesPage() {
   const initialFacilities = await fetchFacilitiesByVenue();
   return (
-    <main className="pb-24">
-      <Suspense>
-        <VenueExplorer initialFacilities={initialFacilities} />
-      </Suspense>
+    // ページ全体はスクロールさせず、本文だけをスクロール（タブバー完全固定）
+    <main className="flex h-dvh flex-col">
+      <div className="flex-1 overflow-y-auto pb-8">
+        <Suspense>
+          <VenueExplorer initialFacilities={initialFacilities} />
+        </Suspense>
+      </div>
       <BottomNav />
     </main>
   );

@@ -11,19 +11,22 @@ export const revalidate = 60;
 export default async function LaundryPage() {
   const initialSpots = await fetchLaundry();
   return (
-    <main className="pb-24">
-      <BottomNav />
-      <div className="p-4">
-        <div className="mb-4">
-          <Link href="/" className="text-sm text-gray-500">
-            ← ホーム
-          </Link>
+    // ページ全体はスクロールさせず、本文だけをスクロール（タブバー完全固定）
+    <main className="flex h-dvh flex-col">
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4">
+          <div className="mb-4">
+            <Link href="/" className="text-sm text-gray-500">
+              ← ホーム
+            </Link>
+          </div>
+          <h1 className="mb-4 text-xl font-bold">
+            高知市内 コインランドリーマップ
+          </h1>
+          <LaundryMapClient initialSpots={initialSpots} />
         </div>
-        <h1 className="mb-4 text-xl font-bold">
-          高知市内 コインランドリーマップ
-        </h1>
-        <LaundryMapClient initialSpots={initialSpots} />
       </div>
+      <BottomNav />
     </main>
   );
 }

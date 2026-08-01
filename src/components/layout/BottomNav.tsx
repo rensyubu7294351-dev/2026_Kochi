@@ -14,7 +14,11 @@ const ITEMS = [
  * 画面下部の固定タブバー（ネイティブアプリ風）。
  * 演舞会場 / 銭湯 / コインランドリー / タクシー をどのページからでも
  * 親指1本で切り替えられる。
- * 置くページは本文最下部が隠れないよう main に pb-24 程度の余白を取ること。
+ *
+ * position:fixed はモバイルのアドレスバー伸縮で動いて見えるため使わない。
+ * 置くページ側を <main className="flex h-dvh flex-col"> にし、本文を
+ * flex-1 + overflow-y-auto のコンテナでスクロールさせ、このバーを
+ * 最後の子として通常フローで置く（＝バーは絶対に動かない）。
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -22,7 +26,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="ページ切り替え"
-      className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[var(--max-content-width)] border-t border-gray-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
+      className="shrink-0 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)]"
     >
       <ul className="grid grid-cols-4">
         {ITEMS.map((item) => {
