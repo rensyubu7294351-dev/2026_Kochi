@@ -15,7 +15,7 @@ export default function TaxiPage() {
           </Link>
         </div>
         <h1 className="mb-4 text-xl font-bold">
-          高知市内で呼べるタクシー会社
+          タクシー会社一覧（24時間受付）
         </h1>
         <TaxiListClient />
       </div>

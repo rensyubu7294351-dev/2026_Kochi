@@ -170,8 +170,7 @@ export function LaundryMapClient() {
       {/* アプリ内ブラウザ（LINE等）は現在地が使えない案内 */}
       {inAppBrowser && (
         <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
-          ⚠️ LINE / Instagram
-          のアプリ内ブラウザでは現在地・ルート案内が使えません。右上の「…」メニューから
+          ⚠️ 現在地が取得できない場合は「…」メニューから
           <span className="font-bold">「Safari / Chrome で開く」</span>
           を選んでください。
         </p>
