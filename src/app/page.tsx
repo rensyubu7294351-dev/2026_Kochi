@@ -7,7 +7,7 @@ export default function HomePage() {
     <main className="p-5">
       <header className="mb-6 text-center">
         <h1 className="text-2xl font-bold text-yosakoi">
-          七福高知マップ（デモ版）
+          七福高知アプリ
         </h1>
       </header>
 

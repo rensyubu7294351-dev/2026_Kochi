@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "七福高知マップ（デモ版）",
-  description:
-    "高知よさこい祭りの演舞会場マップと観光情報。自チーム向けの非公式マップアプリ。",
+  title: "七福高知アプリ",
+  // description:
+  //   "高知よさこい祭りの演舞会場マップと観光情報。自チーム向けの非公式マップアプリ。",
 };
 
 export const viewport: Viewport = {
