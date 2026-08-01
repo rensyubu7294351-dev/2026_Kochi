@@ -342,9 +342,7 @@ export function VenueExplorer({
                     🚶 現在地から 徒歩 約{routeInfo.duration}・
                     {routeInfo.distance}
                   </p>
-                  <p className="mt-1 text-xs text-blue-600">
-                    シートを下にスワイプすると、地図上のルート全体を確認できます
-                  </p>
+
                 </>
               ) : routeError ? (
                 <p className="text-xs font-medium text-red-500">
