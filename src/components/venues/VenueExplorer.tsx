@@ -112,6 +112,7 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
     setCourseError(false);
     setHighlightType(null);
     setFocusPosition(null);
+    clearRoute(); // メモ・ルートを消す
   }
 
   // 施設チップのタップ → その施設タイプを強調表示（もう一度で解除）
@@ -122,6 +123,7 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
     setFocusPosition(null);
     setFitWithCurrent(false);
     setFitToken((n) => n + 1); // 強調タイプにズームし直す
+    clearRoute(); // 直前に開いていたピンのメモ・ルートを消す
   }
 
   // パレード中は開始/終了ピンだけを地図に出す（他アイコンは非表示）
@@ -161,9 +163,11 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
   // 全ピン（＋取得済みなら現在地）を1画面に収める
   function handleShowAll() {
     setHighlightType(null);
+    setShowCourse(false);
     setFocusPosition(null);
     setFitWithCurrent(currentLocation != null);
     setFitToken((t) => t + 1);
+    clearRoute();
   }
 
   return (
