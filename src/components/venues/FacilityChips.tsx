@@ -36,7 +36,7 @@ export function FacilityChips({
   return (
     <div>
       <p className="mb-1.5 text-xs text-gray-500">
-        アイコンをタップすると地図で強調表示します
+        アイコンをタップすると地図上で強調表示されます。
       </p>
       <div className="flex flex-wrap gap-2">
         {/* パレード（開始→終了ルート）チップ */}
