@@ -202,7 +202,7 @@ export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
 
       {/* 操作ガイド */}
       <div className="rounded-lg border border-yosakoi/30 bg-yosakoi/5 px-3 py-2 text-sm font-medium text-yosakoi">
-        👇　Googleマップ上のピンをタップすると、現在地からの徒歩ルートが表示されます
+        👇　Googleマップ上のピンをタップすると、  <br />現在地からの徒歩ルート、詳細情報が表示されます
       </div>
 
       {/* 選択中のピン情報とルート案内はボトムシートで表示。
