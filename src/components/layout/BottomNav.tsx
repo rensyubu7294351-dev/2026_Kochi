@@ -26,7 +26,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="ページ切り替え"
-      className="shrink-0 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)]"
+      className="relative z-30 shrink-0 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)]"
     >
       <ul className="grid grid-cols-4">
         {ITEMS.map((item) => {

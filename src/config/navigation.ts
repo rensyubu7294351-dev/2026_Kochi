@@ -20,13 +20,13 @@ export const HOME_MENU: NavItem[] = [
   },
   {
     title: "銭湯マップ",
-    description: "高知市内の深夜まで営業している銭湯まとめ（タクシー移動推奨）",
+    description: "深夜まで営業している銭湯まとめ\n（タクシー移動推奨）",
     href: "/tourism/sento",
     emoji: "♨️",
   },
   {
     title: "コインランドリーマップ",
-    description: "高知市内のコインランドリーをまとめたマップ（タクシー移動推奨）",
+    description: "コインランドリーマップ\n（タクシー移動推奨）",
     href: "/tourism/laundry",
     emoji: "🧺",
   },

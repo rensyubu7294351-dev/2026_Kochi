@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { BottomSheet } from "@/components/layout/BottomSheet";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import type { Facility, FacilityType, LatLng } from "@/types";
@@ -92,6 +92,14 @@ export function VenueExplorer({
     [activeFacilities],
   );
   const canShowCourse = Boolean(danceStart && danceEnd);
+
+  // バナー・カード類の出現・消滅とレイアウト変化を自動アニメーション
+  const animateOptions = {
+    duration: 250,
+    easing: "cubic-bezier(.22,1,.36,1)",
+  };
+  const [bannersRef] = useAutoAnimate(animateOptions);
+  const [cardsRef] = useAutoAnimate(animateOptions);
 
   // LINE / Instagram などアプリ内ブラウザ検知（現在地が使えないため案内する）
   const [inAppBrowser, setInAppBrowser] = useState(false);
@@ -233,7 +241,7 @@ export function VenueExplorer({
       </div>
 
       {/* ④ 現在地／全体表示 ＋ ⑤ 施設チップ */}
-      <div className="mt-3 space-y-3 px-4">
+      <div ref={bannersRef} className="mt-3 space-y-3 px-4">
         <div className="flex gap-2">
           <button
             onClick={handleLocate}
@@ -287,17 +295,16 @@ export function VenueExplorer({
         />
       </div>
 
-      {/* ⑥ 操作ガイド（目立つ案内） */}
-      <div className="mt-3 px-4">
+      {/* ⑥ 操作ガイド（目立つ案内）。ルートカードの出入りを自動アニメーション */}
+      <div ref={cardsRef} className="mt-3 px-4">
         <div className="rounded-lg border border-yosakoi/30 bg-yosakoi/5 px-3 py-2 text-sm font-medium text-yosakoi">
           👇　Googleマップ上のピンをタップすると、現在地からの徒歩ルートが表示されます
         </div>
 
-        {/* 選択中のピン情報とルート案内は、地図を押し下げないボトムシートで表示。
-            スワイプダウン or ✕ で閉じる */}
-        <BottomSheet open={routeDest != null} onClose={clearRoute}>
+        {/* 選択中のピン情報とルート案内は「別々のカード」で分離。
+            key でピンを替えるたびに auto-animate がクロスフェードする */}
         {routeDest && (
-          <div className="space-y-2 pb-1">
+          <div key={routeDest.id} className="mt-2 space-y-2">
             {/* ① ピン情報カード（白＋メモは黄色） */}
             <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm">
               <div className="flex items-start justify-between gap-2">
@@ -355,7 +362,6 @@ export function VenueExplorer({
             </div>
           </div>
         )}
-        </BottomSheet>
       </div>
 
       {/* ⑦ Googleマップ本体 */}
