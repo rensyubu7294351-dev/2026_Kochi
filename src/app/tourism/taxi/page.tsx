@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { TaxiListClient } from "@/components/tourism/TaxiListClient";
-import { SectionTabs } from "@/components/layout/SectionTabs";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { fetchTaxi } from "@/lib/tourism";
 
 export const metadata = { title: "タクシー会社一覧 | 高知便利情報" };
@@ -11,8 +11,8 @@ export const revalidate = 60;
 export default async function TaxiPage() {
   const initialCompanies = await fetchTaxi();
   return (
-    <main>
-      <SectionTabs />
+    <main className="pb-24">
+      <BottomNav />
       <div className="p-4">
         <div className="mb-4">
           <Link href="/" className="text-sm text-gray-500">

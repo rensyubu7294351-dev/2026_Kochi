@@ -50,7 +50,6 @@ export function VenueTabs({
                     : "bg-gray-100 text-gray-600 active:scale-95")
                 }
               >
-                <span className="text-xs opacity-70">{v.id}</span>
                 {v.name}
                 {v.hasMedal && <span aria-hidden>🥇</span>}
               </button>

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { VenueExplorer } from "@/components/venues/VenueExplorer";
-import { SectionTabs } from "@/components/layout/SectionTabs";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { fetchFacilitiesByVenue } from "@/lib/facilities";
 
 export const metadata = {
@@ -20,11 +20,11 @@ export const revalidate = 60;
 export default async function VenuesPage() {
   const initialFacilities = await fetchFacilitiesByVenue();
   return (
-    <main className="pb-8">
-      <SectionTabs />
+    <main className="pb-24">
       <Suspense>
         <VenueExplorer initialFacilities={initialFacilities} />
       </Suspense>
+      <BottomNav />
     </main>
   );
 }

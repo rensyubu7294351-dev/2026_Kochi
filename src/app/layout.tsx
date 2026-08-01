@@ -13,6 +13,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#e4002b",
+  // 下部タブバーを安全領域（iPhoneのホームバー）まで伸ばすため
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

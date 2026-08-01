@@ -208,7 +208,6 @@ export function VenueExplorer({
       {/* ③ 選択中の会場情報 */}
       <div className="px-4 pt-3">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-gray-400">会場 {active.id}</span>
           <h1 className="text-xl font-bold">{active.name}</h1>
           {active.hasMedal && (
             <span className="flex items-center gap-1 rounded-full bg-yellow-50 py-0.5 pl-1 pr-2.5 text-xs font-bold text-yellow-700">
