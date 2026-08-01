@@ -17,6 +17,9 @@ export async function sbSelect<T>(query: string): Promise<T[]> {
         apikey: SUPABASE_ANON_KEY,
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       },
+      // サーバー(ISR)実行時は60秒キャッシュしてページに焼き込む。
+      // ブラウザ実行時にこのオプションは無視され、常に最新を取得する。
+      next: { revalidate: 60 },
     });
     if (!res.ok) {
       console.error("Supabase read failed:", res.status);

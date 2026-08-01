@@ -66,8 +66,9 @@ function MapController({
  * 移動は基本タクシー前提のため、ルートは車モードで計算し、
  * タクシー会社一覧への導線を随所に置く。
  */
-export function SentoMapClient() {
-  const [spots, setSpots] = useState<Sento[] | null>(null);
+export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
+  // サーバーで焼き込んだ初期データで即描画し、裏で最新を取り直す
+  const [spots, setSpots] = useState<Sento[]>(initialSpots);
 
   // 現在地・全体表示の制御（コインランドリーと同じ）
   const [currentLocation, setCurrentLocation] = useState<LatLng | null>(null);
@@ -89,11 +90,22 @@ export function SentoMapClient() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchSento().then((list) => {
-      if (!cancelled) setSpots(list);
-    });
+    const load = () =>
+      fetchSento().then((list) => {
+        if (!cancelled) setSpots(list);
+      });
+    load();
+    // 画面に戻ってきた時に最新を取り直す（管理画面での更新を素早く反映）
+    const onFocus = () => load();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
@@ -135,9 +147,6 @@ export function SentoMapClient() {
     clearRoute();
   }
 
-  if (spots === null) {
-    return <p className="text-sm text-gray-400">読み込み中...</p>;
-  }
   if (spots.length === 0) {
     return (
       <p className="rounded-xl bg-gray-50 p-4 text-sm text-gray-400">

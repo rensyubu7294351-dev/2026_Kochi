@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { TaxiListClient } from "@/components/tourism/TaxiListClient";
 import { SectionTabs } from "@/components/layout/SectionTabs";
+import { fetchTaxi } from "@/lib/tourism";
 
 export const metadata = { title: "タクシー会社一覧 | 高知便利情報" };
 
-export default function TaxiPage() {
+// データをページに焼き込み60秒ごとに再生成（表示は一瞬・裏で最新化）
+export const revalidate = 60;
+
+export default async function TaxiPage() {
+  const initialCompanies = await fetchTaxi();
   return (
     <main>
       <SectionTabs />
@@ -17,7 +22,7 @@ export default function TaxiPage() {
         <h1 className="mb-4 text-xl font-bold">
           タクシー会社一覧（24時間受付）
         </h1>
-        <TaxiListClient />
+        <TaxiListClient initialCompanies={initialCompanies} />
       </div>
     </main>
   );

@@ -66,8 +66,13 @@ function MapController({
  * Supabaseの laundry テーブルを読み込み、🧺アイコン付きピンで表示する。
  * 現在地取得〜徒歩ルート案内は演舞会場マップと同じ操作フロー。
  */
-export function LaundryMapClient() {
-  const [spots, setSpots] = useState<Laundry[] | null>(null);
+export function LaundryMapClient({
+  initialSpots,
+}: {
+  initialSpots: Laundry[];
+}) {
+  // サーバーで焼き込んだ初期データで即描画し、裏で最新を取り直す
+  const [spots, setSpots] = useState<Laundry[]>(initialSpots);
 
   // 現在地・全体表示の制御（演舞会場と同じ）
   const [currentLocation, setCurrentLocation] = useState<LatLng | null>(null);
@@ -89,11 +94,22 @@ export function LaundryMapClient() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchLaundry().then((list) => {
-      if (!cancelled) setSpots(list);
-    });
+    const load = () =>
+      fetchLaundry().then((list) => {
+        if (!cancelled) setSpots(list);
+      });
+    load();
+    // 画面に戻ってきた時に最新を取り直す（管理画面での更新を素早く反映）
+    const onFocus = () => load();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
@@ -135,9 +151,6 @@ export function LaundryMapClient() {
     clearRoute();
   }
 
-  if (spots === null) {
-    return <p className="text-sm text-gray-400">読み込み中...</p>;
-  }
   if (spots.length === 0) {
     return (
       <p className="rounded-xl bg-gray-50 p-4 text-sm text-gray-400">

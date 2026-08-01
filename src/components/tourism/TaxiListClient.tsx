@@ -5,22 +5,35 @@ import type { TaxiCompany } from "@/types";
 import { fetchTaxi } from "@/lib/tourism";
 
 /** タクシー会社一覧（Supabaseから取得）。 */
-export function TaxiListClient() {
-  const [companies, setCompanies] = useState<TaxiCompany[] | null>(null);
+export function TaxiListClient({
+  initialCompanies,
+}: {
+  initialCompanies: TaxiCompany[];
+}) {
+  // サーバーで焼き込んだ初期データで即描画し、裏で最新を取り直す
+  const [companies, setCompanies] = useState<TaxiCompany[]>(initialCompanies);
 
   useEffect(() => {
     let cancelled = false;
-    fetchTaxi().then((data) => {
-      if (!cancelled) setCompanies(data);
-    });
+    const load = () =>
+      fetchTaxi().then((data) => {
+        if (!cancelled) setCompanies(data);
+      });
+    load();
+    // 画面に戻ってきた時に最新を取り直す（管理画面での更新を素早く反映）
+    const onFocus = () => load();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
-  if (companies === null) {
-    return <p className="text-sm text-gray-400">読み込み中...</p>;
-  }
   if (companies.length === 0) {
     return (
       <p className="text-sm text-gray-400">

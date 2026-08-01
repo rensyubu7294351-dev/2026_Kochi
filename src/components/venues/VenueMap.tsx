@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import { Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import type { Facility, FacilityType, LatLng, Venue } from "@/types";
 import { FACILITY_META } from "@/config/facilities";
@@ -91,6 +91,61 @@ function MapController({
   ]);
   return null;
 }
+
+/**
+ * 施設ピン1本。強調・選択状態が変わらない限り再レンダリングしない
+ * （ルート計算や現在地取得などの状態変化で全ピンが再描画されるのを防ぐ）。
+ */
+const FacilityMarker = memo(function FacilityMarker({
+  facility,
+  isDest,
+  dimmed,
+  emphasized,
+  onPinClick,
+}: {
+  facility: Facility;
+  isDest: boolean;
+  dimmed: boolean;
+  emphasized: boolean;
+  onPinClick: (f: Facility) => void;
+}) {
+  const meta = FACILITY_META[facility.type];
+  return (
+    <AdvancedMarker
+      position={facility.position}
+      title={facility.label ?? meta.label}
+      onClick={() => onPinClick(facility)}
+      zIndex={isDest ? 25 : emphasized ? 20 : undefined}
+    >
+      <div
+        className={
+          "relative transition " +
+          (dimmed ? "opacity-30 " : "") +
+          (emphasized ? "scale-125 " : "")
+        }
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`/images/icons/${meta.icon}`}
+          alt={meta.label}
+          width={44}
+          height={56}
+          className="drop-shadow"
+          style={
+            isDest
+              ? { filter: "drop-shadow(0 0 6px #2563eb)" }
+              : emphasized
+                ? { filter: "drop-shadow(0 0 6px #e4002b)" }
+                : undefined
+          }
+        />
+        <span className="pointer-events-none absolute left-1/2 top-[52px] -translate-x-1/2 whitespace-nowrap rounded-full border border-gray-200 bg-white/95 px-1.5 py-[1px] text-[10px] font-bold leading-tight text-gray-800 shadow-sm">
+          {facility.label ?? meta.label}
+        </span>
+      </div>
+    </AdvancedMarker>
+  );
+});
 
 /**
  * 個別会場のマップ。
@@ -193,49 +248,16 @@ export function VenueMap({
             )}
 
             {/* 施設ピン */}
-            {facilities.map((f) => {
-              const meta = FACILITY_META[f.type];
-              const isDest = routeDest?.id === f.id;
-              const dimmed = highlightType != null && f.type !== highlightType;
-              const emphasized =
-                highlightType != null && f.type === highlightType;
-              return (
-                <AdvancedMarker
-                  key={f.id}
-                  position={f.position}
-                  title={f.label ?? meta.label}
-                  onClick={() => onPinClick(f)}
-                  zIndex={isDest ? 25 : emphasized ? 20 : undefined}
-                >
-                  <div
-                    className={
-                      "relative transition " +
-                      (dimmed ? "opacity-30 " : "") +
-                      (emphasized ? "scale-125 " : "")
-                    }
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`/images/icons/${meta.icon}`}
-                      alt={meta.label}
-                      width={44}
-                      height={56}
-                      className="drop-shadow"
-                      style={
-                        isDest
-                          ? { filter: "drop-shadow(0 0 6px #2563eb)" }
-                          : emphasized
-                            ? { filter: "drop-shadow(0 0 6px #e4002b)" }
-                            : undefined
-                      }
-                    />
-                    <span className="pointer-events-none absolute left-1/2 top-[52px] -translate-x-1/2 whitespace-nowrap rounded-full border border-gray-200 bg-white/95 px-1.5 py-[1px] text-[10px] font-bold leading-tight text-gray-800 shadow-sm">
-                      {f.label ?? meta.label}
-                    </span>
-                  </div>
-                </AdvancedMarker>
-              );
-            })}
+            {facilities.map((f) => (
+              <FacilityMarker
+                key={f.id}
+                facility={f}
+                isDest={routeDest?.id === f.id}
+                dimmed={highlightType != null && f.type !== highlightType}
+                emphasized={highlightType != null && f.type === highlightType}
+                onPinClick={onPinClick}
+              />
+            ))}
           </Map>
         </div>
       </GoogleMapProvider>

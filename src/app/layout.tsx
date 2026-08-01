@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { preconnect } from "react-dom";
+import { SUPABASE_URL } from "@/lib/supabaseEnv";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,6 +20,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // 地図・データ取得先へ事前接続し、初回リクエストのTLS往復を省く
+  preconnect("https://maps.googleapis.com");
+  preconnect("https://maps.gstatic.com");
+  if (SUPABASE_URL) preconnect(SUPABASE_URL);
   return (
     <html lang="ja">
       {/* フォントは端末標準を使用（Webフォントを読み込まず高速表示） */}

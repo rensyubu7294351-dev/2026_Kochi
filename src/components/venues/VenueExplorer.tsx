@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import type { Facility, FacilityType, LatLng } from "@/types";
 import { VENUES, getVenueBySlug } from "@/data/venues";
 import { fetchFacilitiesByVenue } from "@/lib/facilities";
@@ -17,16 +18,22 @@ import { FacilityChips } from "./FacilityChips";
  *   ① パンくず ② 会場タブ ③ 会場情報 ④ 現在地/全体表示
  *   ⑤ 施設チップ（タップで地図強調） ⑥ ルート案内 ⑦ Googleマップ
  */
-export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
-  const [activeSlug, setActiveSlug] = useState(() =>
-    initialSlug && getVenueBySlug(initialSlug) ? initialSlug : VENUES[0].slug,
-  );
+export function VenueExplorer({
+  initialFacilities,
+}: {
+  initialFacilities: Record<string, Facility[]>;
+}) {
+  // ?v=slug（共有リンク・旧URL）から初期会場を決める
+  const searchParams = useSearchParams();
+  const [activeSlug, setActiveSlug] = useState(() => {
+    const v = searchParams.get("v");
+    return v && getVenueBySlug(v) ? v : VENUES[0].slug;
+  });
   const active = getVenueBySlug(activeSlug) ?? VENUES[0];
 
-  // Supabaseから全会場の施設ピンを取得（管理者が入力した内容）
-  const [facilitiesByVenue, setFacilitiesByVenue] = useState<
-    Record<string, Facility[]>
-  >({});
+  // 施設ピンはサーバーで焼き込んだ初期データで即描画し、裏で最新を取り直す
+  const [facilitiesByVenue, setFacilitiesByVenue] =
+    useState<Record<string, Facility[]>>(initialFacilities);
   useEffect(() => {
     let cancelled = false;
     const load = () =>
@@ -145,11 +152,11 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
   // 「現在地を取得」ボタン（ネイティブ操作）で取得する。
   // ※ 地図ピンのタップは iOS Safari では位置情報取得の起点にならないため、
   //   ここでは getCurrentPosition を直接呼ばずボタン操作に委ねる。
-  function handlePinClick(f: Facility) {
+  const handlePinClick = useCallback((f: Facility) => {
     setRouteError(false);
     setRouteInfo(null);
     setRouteDest(f);
-  }
+  }, []);
 
   function handleRouteError() {
     setRouteError(true);
