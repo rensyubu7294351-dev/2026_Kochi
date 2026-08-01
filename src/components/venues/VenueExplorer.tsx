@@ -132,15 +132,14 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
     );
   }, [showCourse, activeFacilities]);
 
-  // ピンのタップ → 現在地からの徒歩ルートを地図に表示（アプリ内で完結）
-  async function handlePinClick(f: Facility) {
+  // ピンのタップ → 目的地を選択。現在地があれば即ルート描画、無ければパネルの
+  // 「現在地を取得」ボタン（ネイティブ操作）で取得する。
+  // ※ 地図ピンのタップは iOS Safari では位置情報取得の起点にならないため、
+  //   ここでは getCurrentPosition を直接呼ばずボタン操作に委ねる。
+  function handlePinClick(f: Facility) {
     setRouteError(false);
     setRouteInfo(null);
     setRouteDest(f);
-    if (!currentLocation) {
-      const pos = await geo.request();
-      if (pos) setCurrentLocation(pos);
-    }
   }
 
   function handleRouteError() {
@@ -282,23 +281,40 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
               </button>
             </div>
 
-            {/* メモ（あれば強調表示） */}
+            {/* メモ（あれば強調表示・黄色の枠で明確に分離） */}
             {routeDest.note && (
-              <p className="mt-1.5 rounded-md bg-yellow-100 px-2.5 py-2 text-sm font-bold leading-relaxed text-yellow-900 shadow-sm">
+              <p className="mt-2 rounded-md border border-yellow-300 bg-yellow-100 px-2.5 py-2 text-sm font-bold leading-relaxed text-yellow-900 shadow-sm">
                 📝 {routeDest.note}
               </p>
             )}
 
             {/* ルート状態（メモとは区切り線で分離） */}
-            <p className="mt-2 border-t border-blue-200 pt-2 text-xs font-medium text-blue-600">
-              {routeInfo
-                ? `🚶 現在地から 徒歩 約${routeInfo.duration}・${routeInfo.distance}`
-                : routeError
-                  ? "ルートを表示できませんでした（位置情報の許可 / Directions API をご確認ください）"
-                  : !currentLocation
-                    ? "📍「現在地」を押して位置情報を許可するとルートを表示します"
-                    : "ルートを計算中…"}
-            </p>
+            <div className="mt-2 border-t border-blue-200 pt-2">
+              {routeInfo ? (
+                <p className="text-xs font-medium text-blue-600">
+                  🚶 現在地から 徒歩 約{routeInfo.duration}・{routeInfo.distance}
+                </p>
+              ) : routeError ? (
+                <p className="text-xs font-medium text-red-500">
+                  ルートを表示できませんでした（位置情報の許可 / Directions API
+                  をご確認ください）
+                </p>
+              ) : currentLocation ? (
+                <p className="text-xs font-medium text-blue-600">
+                  ルートを計算中…
+                </p>
+              ) : (
+                <button
+                  onClick={handleLocate}
+                  disabled={geo.loading}
+                  className="w-full rounded-lg bg-blue-500 py-2 text-sm font-bold text-white disabled:opacity-50"
+                >
+                  {geo.loading
+                    ? "現在地を取得中…"
+                    : "📍 現在地を取得してルートを表示"}
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>
