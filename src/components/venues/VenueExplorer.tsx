@@ -194,16 +194,6 @@ export function VenueExplorer({
     }
   }
 
-  // 全ピン（＋取得済みなら現在地）を1画面に収める
-  function handleShowAll() {
-    setHighlightType(null);
-    setShowCourse(false);
-    setFocusPosition(null);
-    setFitWithCurrent(currentLocation != null);
-    setFitToken((t) => t + 1);
-    clearRoute();
-  }
-
   return (
     <>
       {/* ① パンくずリスト */}
@@ -267,12 +257,6 @@ export function VenueExplorer({
             className="tap rounded-full bg-blue-500 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
           >
             {geo.loading ? "取得中..." : "📍 現在地"}
-          </button>
-          <button
-            onClick={handleShowAll}
-            className="tap rounded-full border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-600"
-          >
-            🗺 全体表示
           </button>
         </div>
 
