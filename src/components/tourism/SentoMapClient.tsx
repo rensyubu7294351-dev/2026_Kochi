@@ -154,7 +154,7 @@ export function SentoMapClient() {
       <div className="rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-sm leading-relaxed text-orange-900">
         <p className="font-bold">🚕 銭湯へは基本タクシーで移動してください</p>
         <p className="mt-0.5 text-xs">
-          深夜は路面電車・バスが終わっています。配車の電話番号は
+          配車の電話番号は
           <Link
             href="/tourism/taxi"
             className="mx-0.5 font-bold text-orange-700 underline"
