@@ -86,6 +86,8 @@ export function LaundryMapClient({
   const [routeDest, setRouteDest] = useState<Laundry | null>(null);
   const [routeInfo, setRouteInfo] = useState<RouteSummary | null>(null);
   const [routeError, setRouteError] = useState(false);
+  // 詳細ボトムシートの開閉。スワイプで閉じてもルートは地図に残す
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -112,6 +114,7 @@ export function LaundryMapClient({
     setRouteDest(null);
     setRouteInfo(null);
     setRouteError(false);
+    setSheetOpen(false);
   }
 
   // ピンのタップ → 目的地を選択。現在地があれば即ルート描画、無ければカードの
@@ -122,6 +125,7 @@ export function LaundryMapClient({
     setRouteError(false);
     setRouteInfo(null);
     setRouteDest(s);
+    setSheetOpen(true);
   }
 
   function handleRouteError() {
@@ -183,8 +187,12 @@ export function LaundryMapClient({
         👇　Googleマップ上のピンをタップすると、現在地からの徒歩ルートが表示されます
       </div>
 
-      {/* 選択中のピン情報とルート案内は「別々のカード」で分離（演舞会場と同じ） */}
-      <BottomSheet open={routeDest != null} onClose={clearRoute}>
+      {/* 選択中のピン情報とルート案内はボトムシートで表示。
+          スワイプで閉じてもルートは地図に残る（✕ で完全クリア） */}
+      <BottomSheet
+        open={sheetOpen && routeDest != null}
+        onClose={() => setSheetOpen(false)}
+      >
         {routeDest && (
         <div className="space-y-2 pb-1">
           {/* ① ピン情報カード（白＋メモは黄色） */}
@@ -237,9 +245,14 @@ export function LaundryMapClient({
           {/* ② ルート／現在地カード（青・別物） */}
           <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
             {routeInfo ? (
-              <p className="text-sm font-medium text-blue-700">
-                🚶 現在地から 徒歩 約{routeInfo.duration}・{routeInfo.distance}
-              </p>
+              <>
+                <p className="text-sm font-medium text-blue-700">
+                  🚶 現在地から 徒歩 約{routeInfo.duration}・{routeInfo.distance}
+                </p>
+                <p className="mt-1 text-xs text-blue-600">
+                  シートを下にスワイプすると、地図上のルート全体を確認できます
+                </p>
+              </>
             ) : routeError ? (
               <p className="text-xs font-medium text-red-500">
                 ルートを表示できませんでした（位置情報の許可 / Directions API

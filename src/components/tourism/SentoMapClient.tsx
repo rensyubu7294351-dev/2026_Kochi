@@ -82,6 +82,8 @@ export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
   const [routeDest, setRouteDest] = useState<Sento | null>(null);
   const [routeInfo, setRouteInfo] = useState<RouteSummary | null>(null);
   const [routeError, setRouteError] = useState(false);
+  // 詳細ボトムシートの開閉。スワイプで閉じてもルートは地図に残す
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -108,6 +110,7 @@ export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
     setRouteDest(null);
     setRouteInfo(null);
     setRouteError(false);
+    setSheetOpen(false);
   }
 
   // ピンのタップ → 目的地を選択。現在地があれば即ルート描画、無ければカードの
@@ -118,6 +121,7 @@ export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
     setRouteError(false);
     setRouteInfo(null);
     setRouteDest(s);
+    setSheetOpen(true);
   }
 
   function handleRouteError() {
@@ -200,9 +204,12 @@ export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
         👇　Googleマップ上のピンをタップすると、現在地からの徒歩ルートが表示されます
       </div>
 
-      {/* 選択中のピン情報とルート案内は、地図を押し下げないボトムシートで表示。
-          スワイプダウン or ✕ で閉じる */}
-      <BottomSheet open={routeDest != null} onClose={clearRoute}>
+      {/* 選択中のピン情報とルート案内はボトムシートで表示。
+          スワイプで閉じてもルートは地図に残る（✕ で完全クリア） */}
+      <BottomSheet
+        open={sheetOpen && routeDest != null}
+        onClose={() => setSheetOpen(false)}
+      >
         {routeDest && (
         <div className="space-y-2 pb-1">
           {/* ① ピン情報カード（白＋注意事項は赤で強調） */}
@@ -311,6 +318,9 @@ export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
                     タクシー会社一覧
                   </Link>
                   から電話してください。
+                </p>
+                <p className="mt-1 text-xs text-blue-600">
+                  シートを下にスワイプすると、地図上のルート全体を確認できます
                 </p>
               </>
             ) : routeError ? (

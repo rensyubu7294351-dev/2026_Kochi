@@ -105,6 +105,8 @@ export function VenueExplorer({
   const [routeDest, setRouteDest] = useState<Facility | null>(null);
   const [routeInfo, setRouteInfo] = useState<RouteSummary | null>(null);
   const [routeError, setRouteError] = useState(false);
+  // 詳細ボトムシートの開閉。スワイプで閉じてもルートは地図に残す
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // パレード（踊り開始位置→終了位置）
   const [showCourse, setShowCourse] = useState(false);
@@ -130,6 +132,7 @@ export function VenueExplorer({
     setRouteDest(null);
     setRouteInfo(null);
     setRouteError(false);
+    setSheetOpen(false);
   }
 
   function selectVenue(slug: string) {
@@ -176,6 +179,7 @@ export function VenueExplorer({
     setRouteError(false);
     setRouteInfo(null);
     setRouteDest(f);
+    setSheetOpen(true);
   }, []);
 
   function handleRouteError() {
@@ -303,7 +307,10 @@ export function VenueExplorer({
 
         {/* 選択中のピン情報とルート案内は、地図を押し下げないボトムシートで表示。
             スワイプダウン or ✕ で閉じる */}
-        <BottomSheet open={routeDest != null} onClose={clearRoute}>
+        <BottomSheet
+          open={sheetOpen && routeDest != null}
+          onClose={() => setSheetOpen(false)}
+        >
         {routeDest && (
           <div className="space-y-2 pb-1">
             {/* ① ピン情報カード（白＋メモは黄色） */}
@@ -329,9 +336,15 @@ export function VenueExplorer({
             {/* ② ルート／現在地カード（青・別物） */}
             <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
               {routeInfo ? (
-                <p className="text-sm font-medium text-blue-700">
-                  🚶 現在地から 徒歩 約{routeInfo.duration}・{routeInfo.distance}
-                </p>
+                <>
+                  <p className="text-sm font-medium text-blue-700">
+                    🚶 現在地から 徒歩 約{routeInfo.duration}・
+                    {routeInfo.distance}
+                  </p>
+                  <p className="mt-1 text-xs text-blue-600">
+                    シートを下にスワイプすると、地図上のルート全体を確認できます
+                  </p>
+                </>
               ) : routeError ? (
                 <p className="text-xs font-medium text-red-500">
                   ルートを表示できませんでした（位置情報の許可 / Directions API
