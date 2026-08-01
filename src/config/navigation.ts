@@ -14,19 +14,19 @@ export type NavItem = {
 export const HOME_MENU: NavItem[] = [
   {
     title: "演舞会場マップ",
-    description: "全14会場のマップ・施設ピン・ルート検索",
+    description: "演舞場ごとのマップ・ルート検索",
     href: "/venues",
     emoji: "🗾",
   },
   {
     title: "銭湯マップ",
-    description: "高知市内の銭湯をまとめた地図",
+    description: "高知市内の深夜まで営業している銭湯まとめ（タクシー移動推奨）",
     href: "/tourism/sento",
     emoji: "♨️",
   },
   {
     title: "コインランドリーマップ",
-    description: "高知市内のコインランドリーをまとめた地図",
+    description: "高知市内のコインランドリーをまとめたマップ（タクシー移動推奨）",
     href: "/tourism/laundry",
     emoji: "🧺",
   },
@@ -37,8 +37,8 @@ export const HOME_MENU: NavItem[] = [
     emoji: "🚕",
   },
   {
-    title: "お役立ち（ライフハック）",
-    description: "既存のライフハックアプリを開く",
+    title: "ライフハック",
+    description: "七福のライフハックアプリ",
     href: LIFEHACK_APP_URL,
     external: true,
     emoji: "💡",

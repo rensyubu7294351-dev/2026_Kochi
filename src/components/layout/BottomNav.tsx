@@ -37,20 +37,31 @@ export function BottomNav() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={
-                  "flex flex-col items-center gap-0.5 py-2 text-[10px] font-bold transition " +
-                  (active ? "text-yosakoi" : "text-gray-400 active:scale-95")
+                  "tap flex flex-col items-center gap-0.5 py-2 text-[10px] font-bold " +
+                  (active ? "text-yosakoi" : "text-gray-400")
                 }
               >
+                {/* 選択中は絵文字がふわっと持ち上がり少し大きくなる */}
                 <span
                   className={
-                    "text-xl leading-none " +
-                    (active ? "" : "grayscale opacity-60")
+                    "text-xl leading-none transition-all duration-300 ease-spring " +
+                    (active
+                      ? "-translate-y-0.5 scale-110"
+                      : "grayscale opacity-60")
                   }
                   aria-hidden
                 >
                   {item.emoji}
                 </span>
                 {item.label}
+                {/* 選択インジケータ（下の小さな点） */}
+                <span
+                  className={
+                    "h-1 w-1 rounded-full bg-yosakoi transition-all duration-300 ease-spring " +
+                    (active ? "scale-100 opacity-100" : "scale-0 opacity-0")
+                  }
+                  aria-hidden
+                />
               </Link>
             </li>
           );

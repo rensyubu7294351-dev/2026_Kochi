@@ -44,10 +44,10 @@ export function VenueTabs({
                 onClick={() => onSelect(v.slug)}
                 aria-current={active ? "true" : undefined}
                 className={
-                  "flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition " +
+                  "tap flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium " +
                   (active
                     ? "bg-yosakoi text-white shadow"
-                    : "bg-gray-100 text-gray-600 active:scale-95")
+                    : "bg-gray-100 text-gray-600")
                 }
               >
                 {v.name}

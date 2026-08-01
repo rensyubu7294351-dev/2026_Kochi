@@ -119,7 +119,7 @@ const FacilityMarker = memo(function FacilityMarker({
     >
       <div
         className={
-          "relative transition " +
+          "relative animate-pin-pop transition-all duration-300 ease-spring " +
           (dimmed ? "opacity-30 " : "") +
           (emphasized ? "scale-125 " : "")
         }
@@ -243,7 +243,7 @@ export function VenueMap({
                 title="現在地"
                 zIndex={30}
               >
-                <span className="block h-4 w-4 rounded-full border-2 border-white bg-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.3)]" />
+                <span className="block h-4 w-4 animate-location-pulse rounded-full border-2 border-white bg-blue-500" />
               </AdvancedMarker>
             )}
 

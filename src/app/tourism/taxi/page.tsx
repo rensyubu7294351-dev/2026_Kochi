@@ -14,7 +14,7 @@ export default async function TaxiPage() {
     // ページ全体はスクロールさせず、本文だけをスクロール（タブバー完全固定）
     <main className="flex h-dvh flex-col">
       <div className="flex-1 overflow-y-auto">
-        <div className="p-4">
+        <div className="animate-fade-in-up p-4">
           <div className="mb-4">
             <Link href="/" className="text-sm text-gray-500">
               ← ホーム

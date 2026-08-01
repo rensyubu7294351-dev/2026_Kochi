@@ -48,16 +48,17 @@ export function TaxiListClient({
         📞 電話番号をタップするとそのまま発信できます
       </p>
       <ul className="grid gap-3">
-        {companies.map((t) => (
+        {companies.map((t, i) => (
           <li
             key={t.id}
-            className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm"
+            className="animate-fade-in-up rounded-xl border border-gray-100 bg-white p-4 shadow-sm"
+            style={{ animationDelay: `${i * 50}ms` }}
           >
             <h3 className="font-bold">{t.name}</h3>
             {t.note && <p className="mt-0.5 text-xs text-gray-500">{t.note}</p>}
             <a
               href={`tel:${t.tel}`}
-              className="mt-3 flex items-center justify-center gap-2 rounded-full bg-yosakoi py-3 text-lg font-bold tracking-wide text-white active:scale-[0.99]"
+              className="tap mt-3 flex items-center justify-center gap-2 rounded-full bg-yosakoi py-3 text-lg font-bold tracking-wide text-white"
             >
               📞 {t.tel}
             </a>

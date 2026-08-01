@@ -8,8 +8,28 @@
 
 html {
   scroll-behavior: smooth;
+  /* 標準のグレーのタップハイライトを消し、.tap の縮小フィードバックに統一 */
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   @apply bg-gray-50 text-gray-900 antialiased;
+}
+
+@layer components {
+  /* タップ可能な要素の共通フィードバック（押すとスッと縮み、離すと戻る） */
+  .tap {
+    @apply transition duration-200 ease-spring active:scale-[0.96];
+  }
+}
+
+/* 動きを減らす設定の端末ではアニメーションを無効化 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

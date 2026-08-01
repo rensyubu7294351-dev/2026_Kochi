@@ -46,10 +46,10 @@ export function FacilityChips({
             onClick={onToggleParade}
             aria-pressed={paradeActive}
             className={
-              "flex items-center gap-1 rounded-full border py-1 pl-2.5 pr-2.5 text-xs font-bold transition " +
+              "tap flex items-center gap-1 rounded-full border py-1 pl-2.5 pr-2.5 text-xs font-bold " +
               (paradeActive
                 ? "border-yosakoi bg-yosakoi text-white ring-2 ring-yosakoi/40"
-                : "border-yosakoi bg-white text-yosakoi active:scale-95")
+                : "border-yosakoi bg-white text-yosakoi")
             }
           >
             🏁 パレード
@@ -66,10 +66,10 @@ export function FacilityChips({
               onClick={() => onSelect(active ? null : t)}
               aria-pressed={active}
               className={
-                "flex items-center gap-1 rounded-full border py-1 pl-1 pr-2.5 text-xs transition " +
+                "tap flex items-center gap-1 rounded-full border py-1 pl-1 pr-2.5 text-xs " +
                 (active
                   ? "border-yosakoi bg-yosakoi/10 font-bold text-yosakoi ring-2 ring-yosakoi/40"
-                  : "border-gray-200 bg-white text-gray-700 active:scale-95")
+                  : "border-gray-200 bg-white text-gray-700")
               }
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}

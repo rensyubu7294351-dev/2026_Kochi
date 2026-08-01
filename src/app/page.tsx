@@ -5,16 +5,19 @@ import { HOME_MENU } from "@/config/navigation";
 export default function HomePage() {
   return (
     <main className="p-5">
-      <header className="mb-6 text-center">
+      <header className="mb-6 animate-fade-in-up text-center">
         <h1 className="text-2xl font-bold text-yosakoi">
           七福高知アプリ
         </h1>
       </header>
 
       <nav className="grid gap-4">
-        {HOME_MENU.map((item) => {
+        {HOME_MENU.map((item, i) => {
           const card = (
-            <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition active:scale-[0.99] hover:shadow-md">
+            <div
+              className="tap flex animate-fade-in-up items-center gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md"
+              style={{ animationDelay: `${i * 60}ms` }}
+            >
               <span className="text-3xl" aria-hidden>
                 {item.emoji}
               </span>

@@ -168,13 +168,13 @@ export function LaundryMapClient({
         <button
           onClick={handleLocate}
           disabled={geo.loading}
-          className="rounded-full bg-blue-500 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+          className="tap rounded-full bg-blue-500 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
         >
           {geo.loading ? "取得中..." : "📍 現在地"}
         </button>
         <button
           onClick={handleShowAll}
-          className="rounded-full border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-600"
+          className="tap rounded-full border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-600"
         >
           🗺 全体表示
         </button>
@@ -191,12 +191,12 @@ export function LaundryMapClient({
 
       {/* 操作ガイド */}
       <div className="rounded-lg border border-yosakoi/30 bg-yosakoi/5 px-3 py-2 text-sm font-medium text-yosakoi">
-        👇Googleマップ上のピンをタップすると、現在地からの徒歩ルートが表示されます
+        👇　Googleマップ上のピンをタップすると、現在地からの徒歩ルートが表示されます
       </div>
 
       {/* 選択中のピン情報とルート案内は「別々のカード」で分離（演舞会場と同じ） */}
       {routeDest && (
-        <div className="space-y-2">
+        <div key={routeDest.id} className="animate-pop-in space-y-2">
           {/* ① ピン情報カード（白＋メモは黄色） */}
           <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm">
             <div className="flex items-start justify-between gap-2">
@@ -210,7 +210,7 @@ export function LaundryMapClient({
               </p>
               <button
                 onClick={clearRoute}
-                className="shrink-0 rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-600"
+                className="tap shrink-0 rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-600"
               >
                 ✕ 閉じる
               </button>
@@ -264,7 +264,7 @@ export function LaundryMapClient({
                 <button
                   onClick={handleLocate}
                   disabled={geo.loading}
-                  className="w-full rounded-lg bg-blue-500 py-2 text-sm font-bold text-white disabled:opacity-50"
+                  className="tap w-full rounded-lg bg-blue-500 py-2 text-sm font-bold text-white disabled:opacity-50"
                 >
                   {geo.loading
                     ? "現在地を取得中…"
@@ -319,7 +319,7 @@ export function LaundryMapClient({
                   title="現在地"
                   zIndex={30}
                 >
-                  <span className="block h-4 w-4 rounded-full border-2 border-white bg-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.3)]" />
+                  <span className="block h-4 w-4 animate-location-pulse rounded-full border-2 border-white bg-blue-500" />
                 </AdvancedMarker>
               )}
 
@@ -336,7 +336,7 @@ export function LaundryMapClient({
                   >
                     <div
                       className={
-                        "relative flex flex-col items-center transition " +
+                        "relative flex animate-pin-pop flex-col items-center transition-all duration-300 ease-spring " +
                         (isDest ? "scale-125" : "")
                       }
                     >
@@ -383,7 +383,7 @@ export function LaundryMapClient({
                 type="button"
                 onClick={() => handlePinClick(s)}
                 className={
-                  "w-full rounded-xl border bg-white p-3 text-left shadow-sm transition active:scale-[0.99] " +
+                  "tap w-full rounded-xl border bg-white p-3 text-left shadow-sm " +
                   (routeDest?.id === s.id ? "border-yosakoi" : "border-gray-100")
                 }
               >
