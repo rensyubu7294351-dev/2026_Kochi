@@ -124,6 +124,11 @@ export function LaundryMapClient({
   function handlePinClick(s: Laundry) {
     setRouteError(false);
     setRouteInfo(null);
+    // 別のピンに切り替えた時は現在地表示も自動OFF（同じピンの再タップは維持）
+    if (routeDest && routeDest.id !== s.id) {
+      setCurrentLocation(null);
+      setFitWithCurrent(false);
+    }
     setRouteDest(s);
     setSheetOpen(true);
   }
@@ -142,6 +147,7 @@ export function LaundryMapClient({
       setFitToken((t) => t + 1);
     }
   }
+
 
   // 全ピン（＋取得済みなら現在地）を1画面に収める
   function handleShowAll() {
@@ -162,15 +168,8 @@ export function LaundryMapClient({
 
   return (
     <div className="space-y-3">
-      {/* 現在地／全体表示 */}
+      {/* 全体表示（現在地はピンのシートから取得する運用） */}
       <div className="flex gap-2">
-        <button
-          onClick={handleLocate}
-          disabled={geo.loading}
-          className="tap rounded-full bg-blue-500 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
-        >
-          {geo.loading ? "取得中..." : "📍 現在地"}
-        </button>
         <button
           onClick={handleShowAll}
           className="tap rounded-full border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-600"

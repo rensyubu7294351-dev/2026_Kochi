@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { BottomSheet } from "@/components/layout/BottomSheet";
 import { InAppBrowserNotice } from "@/components/layout/InAppBrowserNotice";
@@ -107,6 +107,11 @@ export function VenueExplorer({
   const [routeError, setRouteError] = useState(false);
   // 詳細ボトムシートの開閉。スワイプで閉じてもルートは地図に残す
   const [sheetOpen, setSheetOpen] = useState(false);
+  // 「別のピンか」判定用（handlePinClick を useCallback のまま保つためref）
+  const routeDestRef = useRef<string | null>(null);
+  useEffect(() => {
+    routeDestRef.current = routeDest?.id ?? null;
+  }, [routeDest]);
 
   // パレード（踊り開始位置→終了位置）
   const [showCourse, setShowCourse] = useState(false);
@@ -178,6 +183,11 @@ export function VenueExplorer({
   const handlePinClick = useCallback((f: Facility) => {
     setRouteError(false);
     setRouteInfo(null);
+    // 別のピンに切り替えた時は現在地表示も自動OFF（同じピンの再タップは維持）
+    if (routeDestRef.current && routeDestRef.current !== f.id) {
+      setCurrentLocation(null);
+      setFitWithCurrent(false);
+    }
     setRouteDest(f);
     setSheetOpen(true);
   }, []);
@@ -197,6 +207,7 @@ export function VenueExplorer({
       setFitToken((t) => t + 1);
     }
   }
+
 
   return (
     <>
@@ -252,18 +263,8 @@ export function VenueExplorer({
         )}
       </div>
 
-      {/* ④ 現在地／全体表示 ＋ ⑤ 施設チップ */}
+      {/* ④ 案内バナー ＋ ⑤ 施設チップ（現在地はピンのシートから取得する運用） */}
       <div className="mt-3 space-y-3 px-4">
-        <div className="flex gap-2">
-          <button
-            onClick={handleLocate}
-            disabled={geo.loading}
-            className="tap rounded-full bg-blue-500 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
-          >
-            {geo.loading ? "取得中..." : "📍 現在地"}
-          </button>
-        </div>
-
         {/* アプリ内ブラウザ（LINE等）の検知と外部ブラウザへの誘導 */}
         <InAppBrowserNotice />
 
