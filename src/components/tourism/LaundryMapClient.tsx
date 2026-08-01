@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import type { Laundry, LatLng } from "@/types";
 import { fetchLaundry } from "@/lib/tourism";
@@ -85,6 +86,12 @@ export function LaundryMapClient({
   const [routeInfo, setRouteInfo] = useState<RouteSummary | null>(null);
   const [routeError, setRouteError] = useState(false);
 
+  // カード等の出現・消滅とレイアウト変化を自動アニメーション
+  const [animateRef] = useAutoAnimate({
+    duration: 250,
+    easing: "cubic-bezier(.22,1,.36,1)",
+  });
+
   // LINE / Instagram などアプリ内ブラウザ検知（現在地が使えないため案内する）
   const [inAppBrowser, setInAppBrowser] = useState(false);
   useEffect(() => {
@@ -162,7 +169,8 @@ export function LaundryMapClient({
   const routeActive = Boolean(currentLocation && routeDest);
 
   return (
-    <div className="space-y-3">
+    // 詳細カードの出現・消滅と、それに伴う地図の押し下げ/押し上げを自動で滑らかに
+    <div ref={animateRef} className="space-y-3">
       {/* 現在地／全体表示 */}
       <div className="flex gap-2">
         <button
@@ -196,7 +204,7 @@ export function LaundryMapClient({
 
       {/* 選択中のピン情報とルート案内は「別々のカード」で分離（演舞会場と同じ） */}
       {routeDest && (
-        <div key={routeDest.id} className="animate-pop-in space-y-2">
+        <div key={routeDest.id} className="space-y-2">
           {/* ① ピン情報カード（白＋メモは黄色） */}
           <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm">
             <div className="flex items-start justify-between gap-2">

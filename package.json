@@ -12,6 +12,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@formkit/auto-animate": "^0.10.0",
     "@supabase/supabase-js": "^2.110.8",
     "@vis.gl/react-google-maps": "^1.5.0",
     "next": "^15.1.0",

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import type { Sento, LatLng } from "@/types";
 import { fetchSento } from "@/lib/tourism";
@@ -81,6 +82,12 @@ export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
   const [routeInfo, setRouteInfo] = useState<RouteSummary | null>(null);
   const [routeError, setRouteError] = useState(false);
 
+  // カード等の出現・消滅とレイアウト変化を自動アニメーション
+  const [animateRef] = useAutoAnimate({
+    duration: 250,
+    easing: "cubic-bezier(.22,1,.36,1)",
+  });
+
   // LINE / Instagram などアプリ内ブラウザ検知（現在地が使えないため案内する）
   const [inAppBrowser, setInAppBrowser] = useState(false);
   useEffect(() => {
@@ -158,7 +165,8 @@ export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
   const routeActive = Boolean(currentLocation && routeDest);
 
   return (
-    <div className="space-y-3">
+    // 詳細カードの出現・消滅と、それに伴う地図の押し下げ/押し上げを自動で滑らかに
+    <div ref={animateRef} className="space-y-3">
       {/* タクシー移動の案内（銭湯は基本タクシーで向かう） */}
       <div className="rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-sm leading-relaxed text-orange-900">
         <p className="font-bold">🚕 銭湯へは基本タクシーで移動してください</p>
@@ -212,9 +220,9 @@ export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
       </div>
 
       {/* 選択中のピン情報とルート案内は「別々のカード」で分離（コインランドリーと同じ）。
-          key でピンを替えるたびに出現アニメーションをやり直す */}
+          key でピンを替えるたびに auto-animate がクロスフェードする */}
       {routeDest && (
-        <div key={routeDest.id} className="animate-pop-in space-y-2">
+        <div key={routeDest.id} className="space-y-2">
           {/* ① ピン情報カード（白＋注意事項は赤で強調） */}
           <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm">
             <div className="flex items-start justify-between gap-2">
