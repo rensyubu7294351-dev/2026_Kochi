@@ -22,16 +22,30 @@ export function KeepExternalBrowserParam() {
 
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (url.searchParams.get("openExternalBrowser") === "1") return;
-    url.searchParams.set("openExternalBrowser", "1");
-
-    const isLine = /Line\//i.test(navigator.userAgent || "");
-    if (isLine) {
-      // LINE内ブラウザ: 実ナビゲーションさせるとLINEが外部ブラウザを起動する。
-      // 遷移後はパラメータが付いているため再実行されず、ループしない。
-      window.location.replace(url.toString());
-    } else {
+    if (url.searchParams.get("openExternalBrowser") !== "1") {
+      url.searchParams.set("openExternalBrowser", "1");
+      const isLine = /Line\//i.test(navigator.userAgent || "");
+      if (isLine) {
+        // LINE内ブラウザ: 実ナビゲーションさせるとLINEが外部ブラウザを起動する。
+        // 遷移後はパラメータが付いているため再実行されず、ループしない。
+        window.location.replace(url.toString());
+        return;
+      }
       window.history.replaceState(null, "", url.toString());
+    }
+
+    // 次回起動時の「最後に開いていたページ」復元用に現在地を記録。
+    // app_session はセッション継続の目印（RestoreLastPage が参照）。
+    try {
+      sessionStorage.setItem("app_session", "1");
+      if (pathname !== "/" && !pathname.startsWith("/admin")) {
+        localStorage.setItem(
+          "lastPath",
+          window.location.pathname + window.location.search,
+        );
+      }
+    } catch {
+      // ストレージが使えない環境では復元機能だけ無効になる
     }
   }, [pathname, searchParams]);
 

@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { HOME_MENU } from "@/config/navigation";
 import { InAppBrowserNotice } from "@/components/layout/InAppBrowserNotice";
+import { RestoreLastPage } from "@/components/layout/RestoreLastPage";
 
 /** ホーム画面：各ページへのハブ */
 export default function HomePage() {
   return (
     <main className="p-5">
+      {/* アプリ再訪時は前回最後に見ていたページへ自動移動 */}
+      <RestoreLastPage />
       <header className="mb-6 animate-fade-in-up text-center">
         <h1 className="text-2xl font-bold text-yosakoi">
           七福高知アプリ

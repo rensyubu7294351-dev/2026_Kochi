@@ -34,6 +34,23 @@ export function VenueTabs({
       className="sticky top-0 z-10 border-b border-gray-100 bg-white/95 backdrop-blur"
     >
       <ul className="flex gap-2 overflow-x-auto px-3 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {/* 全会場を一望する「全体」タブ（先頭固定） */}
+        <li className="shrink-0">
+          <button
+            ref={activeSlug === "all" ? activeRef : undefined}
+            type="button"
+            onClick={() => onSelect("all")}
+            aria-current={activeSlug === "all" ? "true" : undefined}
+            className={
+              "tap flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium " +
+              (activeSlug === "all"
+                ? "bg-yosakoi text-white shadow"
+                : "bg-gray-100 text-gray-600")
+            }
+          >
+            🗾 全体
+          </button>
+        </li>
         {VENUES.map((v) => {
           const active = v.slug === activeSlug;
           return (

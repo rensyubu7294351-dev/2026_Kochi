@@ -13,7 +13,13 @@ import { FACILITY_META } from "@/config/facilities";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { VenueTabs } from "./VenueTabs";
 import { VenueMap, type RouteSummary } from "./VenueMap";
+import { AllVenuesMap } from "./AllVenuesMap";
 import { FacilityChips } from "./FacilityChips";
+
+/** 「全体」タブを含めた有効なタブ判定 */
+function isValidSlug(v: string | null): v is string {
+  return Boolean(v && (v === "all" || getVenueBySlug(v)));
+}
 
 /**
  * 演舞会場マップの全体ページ本体。
@@ -25,13 +31,32 @@ export function VenueExplorer({
 }: {
   initialFacilities: Record<string, Facility[]>;
 }) {
-  // ?v=slug（共有リンク・旧URL）から初期会場を決める
+  // ?v=slug（共有リンク・旧URL）から初期会場を決める。既定は上町（先頭）
   const searchParams = useSearchParams();
   const [activeSlug, setActiveSlug] = useState(() => {
     const v = searchParams.get("v");
-    return v && getVenueBySlug(v) ? v : VENUES[0].slug;
+    return isValidSlug(v) ? v : VENUES[0].slug;
   });
+  const isAll = activeSlug === "all";
   const active = getVenueBySlug(activeSlug) ?? VENUES[0];
+
+  // URLで会場指定が無ければ、前回最後に開いていたタブを復元
+  useEffect(() => {
+    if (searchParams.get("v")) return;
+    try {
+      const saved = localStorage.getItem("lastVenueSlug");
+      if (isValidSlug(saved)) setActiveSlug(saved);
+    } catch {}
+    // 初回マウント時のみ復元する
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 最後に開いていたタブを保存（次回起動時の復元用）
+  useEffect(() => {
+    try {
+      localStorage.setItem("lastVenueSlug", activeSlug);
+    } catch {}
+  }, [activeSlug]);
 
   // 施設ピンはサーバーで焼き込んだ初期データで即描画し、裏で最新を取り直す
   const [facilitiesByVenue, setFacilitiesByVenue] =
@@ -94,12 +119,12 @@ export function VenueExplorer({
   );
   const canShowCourse = Boolean(danceStart && danceEnd);
 
-  // 選択中の会場を URL に反映
+  // 選択中のタブ（会場 or 全体）を URL に反映
   useEffect(() => {
     const url = new URL(window.location.href);
-    url.searchParams.set("v", active.slug);
+    url.searchParams.set("v", activeSlug);
     window.history.replaceState(null, "", `${url.pathname}${url.search}`);
-  }, [active.slug]);
+  }, [activeSlug]);
 
   function clearRoute() {
     setRouteDest(null);
@@ -193,35 +218,43 @@ export function VenueExplorer({
           <span aria-hidden>›</span>
           <span>演舞会場</span>
           <span aria-hidden>›</span>
-          <span className="font-medium text-gray-900">{active.name}</span>
+          <span className="font-medium text-gray-900">
+            {isAll ? "全体" : active.name}
+          </span>
         </nav>
       </header>
 
-      {/* ② 会場切り替えタブ */}
-      <VenueTabs activeSlug={active.slug} onSelect={selectVenue} />
+      {/* ② 会場切り替えタブ（先頭に「全体」） */}
+      <VenueTabs activeSlug={activeSlug} onSelect={selectVenue} />
 
-      {/* ③ 選択中の会場情報（会場切替でふわっと入れ替わる） */}
-      <div key={active.slug} className="animate-fade-in-up px-4 pt-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-xl font-bold">{active.name}</h1>
-          {active.hasMedal && (
-            <span className="flex items-center gap-1 rounded-full bg-yellow-50 py-0.5 pl-1 pr-2.5 text-xs font-bold text-yellow-700">
-              <Image
-                src="/images/icons/medal.svg"
-                alt=""
-                width={18}
-                height={18}
-              />
-              メダル会場
-            </span>
-          )}
-        </div>
-        {active.courseLength !== undefined && (
-          <p className="mt-0.5 text-sm font-medium text-kochi-sea">
-            {active.courseLength === "stage"
-              ? "競演場：ステージ会場"
-              : `競演場の長さ：約${active.courseLength}m`}
-          </p>
+      {/* ③ 選択中の会場情報（会場切替でふわっと入れ替わる）。全体表示では会場名の代わりに案内 */}
+      <div key={activeSlug} className="animate-fade-in-up px-4 pt-3">
+        {isAll ? (
+          <h1 className="text-xl font-bold">全演舞会場マップ</h1>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl font-bold">{active.name}</h1>
+              {active.hasMedal && (
+                <span className="flex items-center gap-1 rounded-full bg-yellow-50 py-0.5 pl-1 pr-2.5 text-xs font-bold text-yellow-700">
+                  <Image
+                    src="/images/icons/medal.svg"
+                    alt=""
+                    width={18}
+                    height={18}
+                  />
+                  メダル会場
+                </span>
+              )}
+            </div>
+            {active.courseLength !== undefined && (
+              <p className="mt-0.5 text-sm font-medium text-kochi-sea">
+                {active.courseLength === "stage"
+                  ? "競演場：ステージ会場"
+                  : `競演場の長さ：約${active.courseLength}m`}
+              </p>
+            )}
+          </>
         )}
       </div>
 
@@ -247,7 +280,7 @@ export function VenueExplorer({
         <InAppBrowserNotice />
 
         {/* パレードの案内 */}
-        {showCourse && (
+        {!isAll && showCourse && (
           <div className="flex items-center justify-between gap-2 rounded-lg border border-yosakoi/30 bg-yosakoi/5 px-3 py-2">
             <p className="text-sm font-bold text-yosakoi">
               {courseError
@@ -263,21 +296,25 @@ export function VenueExplorer({
           </div>
         )}
 
-        {/* 施設アイコン（現在地の下・タップで強調） */}
-        <FacilityChips
-          types={presentTypes}
-          selected={highlightType}
-          onSelect={handleSelectType}
-          paradeAvailable={canShowCourse}
-          paradeActive={showCourse}
-          onToggleParade={toggleCourse}
-        />
+        {/* 施設アイコン（現在地の下・タップで強調）。全体表示では非表示 */}
+        {!isAll && (
+          <FacilityChips
+            types={presentTypes}
+            selected={highlightType}
+            onSelect={handleSelectType}
+            paradeAvailable={canShowCourse}
+            paradeActive={showCourse}
+            onToggleParade={toggleCourse}
+          />
+        )}
       </div>
 
       {/* ⑥ 操作ガイド（目立つ案内） */}
       <div className="mt-3 px-4">
         <div className="rounded-lg border border-yosakoi/30 bg-yosakoi/5 px-3 py-2 text-sm font-medium text-yosakoi">
-          👇　Googleマップ上のピンをタップすると、現在地からの徒歩ルートが表示されます
+          {isAll
+            ? "👇　会場のピンをタップすると、その会場のページに移動します"
+            : "👇　Googleマップ上のピンをタップすると、現在地からの徒歩ルートが表示されます"}
         </div>
 
         {/* 選択中のピン情報とルート案内は、地図を押し下げないボトムシートで表示。
@@ -345,8 +382,16 @@ export function VenueExplorer({
         </BottomSheet>
       </div>
 
-      {/* ⑦ Googleマップ本体 */}
+      {/* ⑦ Googleマップ本体（全体表示は全会場ピンの概観マップ） */}
       <div className="mt-3">
+        {isAll ? (
+          <AllVenuesMap
+            currentLocation={currentLocation}
+            fitWithCurrent={fitWithCurrent}
+            fitToken={fitToken}
+            onSelect={selectVenue}
+          />
+        ) : (
         <VenueMap
           venue={active}
           facilities={mapFacilities}
@@ -364,6 +409,7 @@ export function VenueExplorer({
           onCourseInfo={() => setCourseError(false)}
           onCourseError={() => setCourseError(true)}
         />
+        )}
       </div>
     </>
   );
