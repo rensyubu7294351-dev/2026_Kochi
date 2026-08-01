@@ -9,11 +9,11 @@ export default function HomePage() {
     <main className="p-5">
       {/* アプリ再訪時は前回最後に見ていたページへ自動移動 */}
       <RestoreLastPage />
-      <header className="mb-6 animate-fade-in-up text-center">
+      {/* <header className="mb-6 animate-fade-in-up text-center">
         <h1 className="text-2xl font-bold text-yosakoi">
           七福高知アプリ
         </h1>
-      </header>
+      </header> */}
 
       {/* LINE等のアプリ内ブラウザで開かれた場合の外部ブラウザ誘導 */}
       <div className="mb-4">
