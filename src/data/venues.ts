@@ -48,7 +48,7 @@ export const VENUES: Venue[] = [
   {
     id: 3,
     slug: "masugata",
-    name: "枡形",
+    name: "升形地域",
     address: "升形商店街",
     // 枡形駅〜大膳町公園を含む範囲を初期表示
     center: { lat: 33.5578, lng: 133.5268 },
