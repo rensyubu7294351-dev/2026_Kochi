@@ -47,6 +47,8 @@ function buildRow(kind: TourismKind, b: Record<string, unknown>) {
       ...base,
       price: typeof b.price === "number" ? b.price : null,
       has_sauna: Boolean(b.hasSauna),
+      access: str(b.access),
+      map_url: str(b.mapUrl),
     };
   }
   return { ...base, is_24h: Boolean(b.is24h) };

@@ -34,6 +34,8 @@ export function rowToSento(r: SentoRow): Sento {
     note: r.note ?? undefined,
     price: r.price ?? undefined,
     hasSauna: r.has_sauna,
+    access: r.access ?? undefined,
+    mapUrl: r.map_url ?? undefined,
   };
 }
 

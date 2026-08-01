@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPageClient } from "@/components/tourism/MapPageClient";
+import { SentoMapClient } from "@/components/tourism/SentoMapClient";
 import { SectionTabs } from "@/components/layout/SectionTabs";
 
 export const metadata = { title: "銭湯マップ | 高知便利情報" };
@@ -15,7 +15,7 @@ export default function SentoPage() {
           </Link>
         </div>
         <h1 className="mb-4 text-xl font-bold">高知市内 銭湯マップ</h1>
-        <MapPageClient kind="sento" />
+        <SentoMapClient />
       </div>
     </main>
   );

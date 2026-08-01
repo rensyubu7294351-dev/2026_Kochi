@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AdminVenueEditor } from "./AdminVenueEditor";
-import { AdminMapPageEditor } from "./AdminMapPageEditor";
+import { AdminSentoEditor } from "./AdminSentoEditor";
 import { AdminLaundryEditor } from "./AdminLaundryEditor";
 import { AdminTaxiEditor } from "./AdminTaxiEditor";
 
@@ -77,9 +77,7 @@ export function AdminDashboard({
 
       {/* 選択中のエディタ */}
       {section === "venues" && <AdminVenueEditor password={password} />}
-      {section === "sento" && (
-        <AdminMapPageEditor kind="sento" password={password} />
-      )}
+      {section === "sento" && <AdminSentoEditor password={password} />}
       {section === "laundry" && <AdminLaundryEditor password={password} />}
       {section === "taxi" && <AdminTaxiEditor password={password} />}
     </main>

@@ -122,6 +122,10 @@ export type Sento = TourismSpot & {
   price?: number;
   /** サウナ有無 */
   hasSauna?: boolean;
+  /** アクセスの目安（例: 「タクシー10〜15分」） */
+  access?: string;
+  /** Googleマップの共有リンク（無ければ座標から自動生成） */
+  mapUrl?: string;
 };
 
 /** コインランドリー */
@@ -156,6 +160,8 @@ export type SentoRow = {
   note: string | null;
   price: number | null;
   has_sauna: boolean;
+  access: string | null;
+  map_url: string | null;
   created_at: string;
 };
 
