@@ -85,6 +85,13 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
   );
   const canShowCourse = Boolean(danceStart && danceEnd);
 
+  // LINE / Instagram などアプリ内ブラウザ検知（現在地が使えないため案内する）
+  const [inAppBrowser, setInAppBrowser] = useState(false);
+  useEffect(() => {
+    const ua = navigator.userAgent || "";
+    setInAppBrowser(/Line|FBAN|FBAV|Instagram/i.test(ua));
+  }, []);
+
   // 選択中の会場を URL に反映
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -236,6 +243,16 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
           </button>
         </div>
 
+        {/* アプリ内ブラウザ（LINE等）は現在地が使えない案内 */}
+        {inAppBrowser && (
+          <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+            ⚠️ LINE / Instagram
+            のアプリ内ブラウザでは現在地・ルート案内が使えません。右上の「…」メニューから
+            <span className="font-bold">「Safari / Chrome で開く」</span>
+            を選んでください。
+          </p>
+        )}
+
         {/* パレードの案内 */}
         {showCourse && (
           <div className="flex items-center justify-between gap-2 rounded-lg border border-yosakoi/30 bg-yosakoi/5 px-3 py-2">
@@ -309,15 +326,23 @@ export function VenueExplorer({ initialSlug }: { initialSlug?: string }) {
                   ルートを計算中…
                 </p>
               ) : (
-                <button
-                  onClick={handleLocate}
-                  disabled={geo.loading}
-                  className="w-full rounded-lg bg-blue-500 py-2 text-sm font-bold text-white disabled:opacity-50"
-                >
-                  {geo.loading
-                    ? "現在地を取得中…"
-                    : "📍 現在地を取得してルートを表示"}
-                </button>
+                <>
+                  <button
+                    onClick={handleLocate}
+                    disabled={geo.loading}
+                    className="w-full rounded-lg bg-blue-500 py-2 text-sm font-bold text-white disabled:opacity-50"
+                  >
+                    {geo.loading
+                      ? "現在地を取得中…"
+                      : "📍 現在地を取得してルートを表示"}
+                  </button>
+                  {geo.error && (
+                    <p className="mt-2 text-xs font-medium text-red-500">
+                      現在地を取得できませんでした。LINE等のアプリ内ブラウザでは使えないことがあります。右上メニューから
+                      Safari / Chrome で開き直し、位置情報を「許可」してください。
+                    </p>
+                  )}
+                </>
               )}
             </div>
           </div>
