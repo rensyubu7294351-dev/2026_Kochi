@@ -40,13 +40,6 @@ insert into public.sento (name, address, lat, lng, hours, tel, url, map_url, not
    null,
    'https://maps.google.com/?cid=14130282426001517548',
    null,
-   450, false, '高知駅から徒歩約900m'),
+   450, false, '高知駅から徒歩約900m');
 
-  -- 地図サービス上の正式名称は「潮湯（うしおゆ）」（住所・電話が一致）
-  ('潮湯（うしおゆ）', '高知市潮新町1-8-19', 33.551522, 133.548948,
-   '{"mon":null,"tue":null,"wed":null,"thu":null,"fri":null,"sat":null,"sun":null,"note":"15:00〜19:00・月水金のみ"}',
-   '088-831-2283',
-   null,
-   null,
-   '⚠️営業は月・水・金のみ（15:00〜19:00）',
-   400, false, null);
+ 
