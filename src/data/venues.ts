@@ -41,7 +41,7 @@ export const VENUES: Venue[] = [
     center: { lat: 33.5679, lng: 133.52 },
     zoom: 16,
     courseLength: 400,
-    hasMedal: false,
+    hasMedal: true,
     image: "/images/venues/02-manma.jpg",
     facilities: [],
   },
