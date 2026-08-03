@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { LaundryMapClient } from "@/components/tourism/LaundryMapClient";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { fetchLaundry } from "@/lib/tourism";
@@ -15,11 +14,6 @@ export default async function LaundryPage() {
     <main className="flex h-dvh flex-col">
       <div className="flex-1 overflow-y-auto">
         <div className="animate-fade-in-up p-4">
-          <div className="mb-4">
-            <Link href="/" className="text-sm text-gray-500">
-              ← ホーム
-            </Link>
-          </div>
           <h1 className="mb-4 text-xl font-bold">
             高知市内 コインランドリーマップ
           </h1>

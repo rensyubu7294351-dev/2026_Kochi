@@ -36,8 +36,8 @@ export function AdminDashboard({
         <div>
           <h1 className="font-bold">管理者ページ</h1>
           <nav className="text-xs text-gray-400">
-            <Link href="/" className="hover:text-yosakoi">
-              ホーム
+            <Link href="/venues" className="hover:text-yosakoi">
+              アプリ
             </Link>{" "}
             › 管理者
           </nav>

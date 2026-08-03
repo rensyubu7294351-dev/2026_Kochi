@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { BottomSheet } from "@/components/layout/BottomSheet";
 import { InAppBrowserNotice } from "@/components/layout/InAppBrowserNotice";
 import { LocationErrorNotice } from "@/components/layout/LocationErrorNotice";
@@ -218,10 +217,6 @@ export function VenueExplorer({
           aria-label="パンくずリスト"
           className="flex flex-wrap items-center gap-1.5 text-sm text-gray-500"
         >
-          <Link href="/" className="hover:text-yosakoi">
-            ホーム
-          </Link>
-          <span aria-hidden>›</span>
           <span>演舞会場</span>
           <span aria-hidden>›</span>
           <span className="font-medium text-gray-900">

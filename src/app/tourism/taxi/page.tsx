@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { TaxiListClient } from "@/components/tourism/TaxiListClient";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { fetchTaxi } from "@/lib/tourism";
@@ -15,11 +14,6 @@ export default async function TaxiPage() {
     <main className="flex h-dvh flex-col">
       <div className="flex-1 overflow-y-auto">
         <div className="animate-fade-in-up p-4">
-          <div className="mb-4">
-            <Link href="/" className="text-sm text-gray-500">
-              ← ホーム
-            </Link>
-          </div>
           <h1 className="mb-4 text-xl font-bold">
             タクシー会社一覧（24時間受付）
           </h1>

@@ -54,10 +54,8 @@ export function KeepExternalBrowserParam() {
       window.history.replaceState(null, "", url.toString());
     }
 
-    // 次回起動時の「最後に開いていたページ」復元用に現在地を記録。
-    // app_session はセッション継続の目印（RestoreLastPage が参照）。
+    // 次回起動時の「最後に開いていたページ」復元用に記録（HomeLauncher が参照）。
     try {
-      sessionStorage.setItem("app_session", "1");
       if (pathname !== "/" && !pathname.startsWith("/admin")) {
         localStorage.setItem(
           "lastPath",

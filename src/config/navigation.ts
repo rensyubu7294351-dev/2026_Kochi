@@ -1,46 +1,42 @@
 import { LIFEHACK_APP_URL } from "@/lib/constants";
 
-/** ホーム画面に並べる主要メニュー */
+/** 下部タブバーに並べる項目 */
 export type NavItem = {
-  title: string;
-  description: string;
+  /** タブの表示名（5つ横に並ぶため短く） */
+  label: string;
   href: string;
   /** 外部リンク（別タブで開く）か */
   external?: boolean;
-  /** カードの装飾用アイコン名（public/images/icons or 絵文字など任意運用） */
-  emoji?: string;
+  emoji: string;
 };
 
-export const HOME_MENU: NavItem[] = [
-  {
-    title: "演舞会場マップ",
-    description: "演舞場ごとのマップ・ルート検索",
-    href: "/venues",
-    emoji: "🗾",
-  },
-  {
-    title: "銭湯マップ",
-    description: "深夜まで営業している銭湯まとめ\n（タクシー移動推奨）",
-    href: "/tourism/sento",
-    emoji: "♨️",
-  },
-  {
-    title: "コインランドリーマップ",
-    description: "コインランドリーマップ\n（タクシー移動推奨）",
-    href: "/tourism/laundry",
-    emoji: "🧺",
-  },
-  {
-    title: "タクシー会社一覧",
-    description: "市内で呼べるタクシーの電話番号",
-    href: "/tourism/taxi",
-    emoji: "🚕",
-  },
-  {
-    title: "ライフハック",
-    description: "七福のライフハックアプリ",
-    href: LIFEHACK_APP_URL,
-    external: true,
-    emoji: "💡",
-  },
+/**
+ * アプリの主要ナビゲーション（下部タブバーの内容）。
+ * トップページは廃止したため、ここがページ移動の唯一の入口。
+ */
+export const MAIN_NAV: NavItem[] = [
+  { label: "演舞会場", href: "/venues", emoji: "🗾" },
+  { label: "銭湯", href: "/tourism/sento", emoji: "♨️" },
+  { label: "ランドリー", href: "/tourism/laundry", emoji: "🧺" },
+  { label: "タクシー", href: "/tourism/taxi", emoji: "🚕" },
+  { label: "ライフハック", href: LIFEHACK_APP_URL, external: true, emoji: "💡" },
 ];
+
+/** アプリ内ページのパス一覧 */
+export const APP_ROUTES: string[] = MAIN_NAV.filter((i) => !i.external).map(
+  (i) => i.href,
+);
+
+/** "/" にアクセスされた時の既定の転送先 */
+export const DEFAULT_ROUTE = "/venues";
+
+/**
+ * アプリ内の既知ページか判定する（クエリ・末尾スラッシュは無視）。
+ * 保存済みの「最後に開いたページ」が古くなっていた場合に、
+ * 存在しないURLへ転送するのを防ぐ。
+ */
+export function isKnownRoute(path: string | null | undefined): boolean {
+  if (!path || !path.startsWith("/")) return false;
+  const pathname = path.split(/[?#]/)[0].replace(/\/+$/, "");
+  return APP_ROUTES.includes(pathname);
+}
