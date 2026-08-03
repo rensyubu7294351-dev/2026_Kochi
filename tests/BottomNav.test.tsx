@@ -64,21 +64,11 @@ describe("BottomNav（下部タブバー）", () => {
     expect(active).toHaveLength(0);
   });
 
-  it("外部リンクは別タブで安全に開く", () => {
+  it("全タブがアプリ内ページを指している（外部サイトへ飛ばない）", () => {
     render(<BottomNav />);
-    const external = MAIN_NAV.find((i) => i.external)!;
-    const link = screen.getByText(external.label).closest("a")!;
-    expect(link).toHaveAttribute("href", external.href);
-    expect(link).toHaveAttribute("target", "_blank");
-    expect(link).toHaveAttribute("rel", "noopener noreferrer");
-  });
-
-  it("外部リンクは選択状態にならない", () => {
-    const external = MAIN_NAV.find((i) => i.external)!;
-    currentPath = external.href;
-    render(<BottomNav />);
-    const link = screen.getByText(external.label).closest("a")!;
-    expect(link).not.toHaveAttribute("aria-current");
+    for (const link of screen.getAllByRole("link")) {
+      expect(link.getAttribute("href")).toMatch(/^\//);
+    }
   });
 
   it("スクリーンリーダー向けのラベルが付いている", () => {

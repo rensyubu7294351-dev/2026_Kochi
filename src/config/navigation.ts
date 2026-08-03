@@ -1,12 +1,8 @@
-import { LIFEHACK_APP_URL } from "@/lib/constants";
-
 /** 下部タブバーに並べる項目 */
 export type NavItem = {
-  /** タブの表示名（5つ横に並ぶため短く） */
+  /** タブの表示名（横に並ぶため短く） */
   label: string;
   href: string;
-  /** 外部リンク（別タブで開く）か */
-  external?: boolean;
   emoji: string;
 };
 
@@ -19,13 +15,11 @@ export const MAIN_NAV: NavItem[] = [
   { label: "銭湯", href: "/tourism/sento", emoji: "♨️" },
   { label: "ランドリー", href: "/tourism/laundry", emoji: "🧺" },
   { label: "タクシー", href: "/tourism/taxi", emoji: "🚕" },
-  { label: "ライフハック", href: LIFEHACK_APP_URL, external: true, emoji: "💡" },
+  { label: "MER", href: "/mer", emoji: "🏥" },
 ];
 
 /** アプリ内ページのパス一覧 */
-export const APP_ROUTES: string[] = MAIN_NAV.filter((i) => !i.external).map(
-  (i) => i.href,
-);
+export const APP_ROUTES: string[] = MAIN_NAV.map((i) => i.href);
 
 /** "/" にアクセスされた時の既定の転送先 */
 export const DEFAULT_ROUTE = "/venues";

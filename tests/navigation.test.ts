@@ -13,13 +13,8 @@ describe("MAIN_NAV（下部タブの定義）", () => {
       "/tourism/sento",
       "/tourism/laundry",
       "/tourism/taxi",
+      "/mer",
     ]);
-  });
-
-  it("トップページ廃止で失われるライフハックの導線がタブに残っている", () => {
-    const external = MAIN_NAV.filter((i) => i.external);
-    expect(external).toHaveLength(1);
-    expect(external[0].href).toMatch(/^https?:\/\//);
   });
 
   it("hrefが重複していない", () => {
