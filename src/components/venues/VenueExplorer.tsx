@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation";
 import type { Facility, FacilityType, LatLng } from "@/types";
 import { VENUES, getVenueBySlug } from "@/data/venues";
 import { fetchFacilitiesByVenue } from "@/lib/facilities";
+import type { Audience } from "@/config/navigation";
 import { FACILITY_META } from "@/config/facilities";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { VenueTabs } from "./VenueTabs";
@@ -28,9 +29,13 @@ function isValidSlug(v: string | null): v is string {
  */
 export function VenueExplorer({
   initialFacilities,
+  audience,
 }: {
   initialFacilities: Record<string, Facility[]>;
+  audience: Audience;
 }) {
+  // 選択中の会場タブは系統ごとに覚える
+  const venueSlugKey = `lastVenueSlug:${audience}`;
   // ?v=slug（共有リンク・旧URL）から初期会場を決める。既定は上町（先頭）
   const searchParams = useSearchParams();
   const [activeSlug, setActiveSlug] = useState(() => {
@@ -44,7 +49,7 @@ export function VenueExplorer({
   useEffect(() => {
     if (searchParams.get("v")) return;
     try {
-      const saved = localStorage.getItem("lastVenueSlug");
+      const saved = localStorage.getItem(venueSlugKey);
       if (isValidSlug(saved)) setActiveSlug(saved);
     } catch {}
     // 初回マウント時のみ復元する
@@ -54,9 +59,9 @@ export function VenueExplorer({
   // 最後に開いていたタブを保存（次回起動時の復元用）
   useEffect(() => {
     try {
-      localStorage.setItem("lastVenueSlug", activeSlug);
+      localStorage.setItem(venueSlugKey, activeSlug);
     } catch {}
-  }, [activeSlug]);
+  }, [activeSlug, venueSlugKey]);
 
   // 施設ピンはサーバーで焼き込んだ初期データで即描画し、裏で最新を取り直す
   const [facilitiesByVenue, setFacilitiesByVenue] =
@@ -64,7 +69,7 @@ export function VenueExplorer({
   useEffect(() => {
     let cancelled = false;
     const load = () =>
-      fetchFacilitiesByVenue().then((data) => {
+      fetchFacilitiesByVenue(audience).then((data) => {
         if (!cancelled) setFacilitiesByVenue(data);
       });
     load();
@@ -80,7 +85,7 @@ export function VenueExplorer({
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, []);
+  }, [audience]);
 
   const activeFacilities = useMemo(
     () => facilitiesByVenue[active.slug] ?? [],

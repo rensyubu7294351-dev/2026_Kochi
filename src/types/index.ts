@@ -57,6 +57,7 @@ export type FacilityRow = {
   lat: number;
   lng: number;
   note: string | null;
+  audience: string;
   created_at: string;
 };
 
@@ -162,6 +163,7 @@ export type SentoRow = {
   has_sauna: boolean;
   access: string | null;
   map_url: string | null;
+  audience: string;
   created_at: string;
 };
 
@@ -176,6 +178,7 @@ export type LaundryRow = {
   url: string | null;
   note: string | null;
   is_24h: boolean;
+  audience: string;
   created_at: string;
 };
 
@@ -185,8 +188,12 @@ export type TaxiRow = {
   tel: string;
   note: string | null;
   url: string | null;
+  audience: string;
   created_at: string;
 };
+
+/** 系統（ユーザー用 / サポーター用）。定義は config/navigation.ts */
+export type { Audience } from "@/config/navigation";
 
 /** 観光編の管理対象の種類 */
 export type TourismKind = "sento" | "laundry" | "taxi";

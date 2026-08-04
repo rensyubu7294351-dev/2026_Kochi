@@ -5,5 +5,5 @@ import { HomeLauncher } from "@/components/layout/HomeLauncher";
  * （ページ移動は画面下部の固定タブバーに集約）
  */
 export default function HomePage() {
-  return <HomeLauncher />;
+  return <HomeLauncher audience="user" />;
 }

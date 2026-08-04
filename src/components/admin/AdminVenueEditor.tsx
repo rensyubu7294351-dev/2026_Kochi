@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { Audience } from "@/config/navigation";
 import {
   Map,
   AdvancedMarker,
@@ -31,7 +32,13 @@ function MapController({ venue }: { venue: Venue }) {
  * 使い方: 会場タブ選択 → 地図をタップして位置指定 → 種類/名前を入れて保存。
  * 保存内容はSupabaseに書き込まれ、ユーザーの地図に反映される。
  */
-export function AdminVenueEditor({ password }: { password: string }) {
+export function AdminVenueEditor({
+  password,
+  audience,
+}: {
+  password: string;
+  audience: Audience;
+}) {
   const [activeSlug, setActiveSlug] = useState(VENUES[0].slug);
   const venue = getVenueBySlug(activeSlug) ?? VENUES[0];
 
@@ -54,7 +61,7 @@ export function AdminVenueEditor({ password }: { password: string }) {
 
   const reload = useCallback(async () => {
     setLoading(true);
-    setRows(await fetchVenueFacilityRows(activeSlug));
+    setRows(await fetchVenueFacilityRows(activeSlug, audience));
     setLoading(false);
   }, [activeSlug]);
 
@@ -82,6 +89,7 @@ export function AdminVenueEditor({ password }: { password: string }) {
         "x-admin-password": password,
       },
       body: JSON.stringify({
+        audience,
         venueSlug: activeSlug,
         type,
         label,
@@ -130,6 +138,7 @@ export function AdminVenueEditor({ password }: { password: string }) {
         "x-admin-password": password,
       },
       body: JSON.stringify({
+        audience,
         id: editingId,
         type: editType,
         label: editLabel,

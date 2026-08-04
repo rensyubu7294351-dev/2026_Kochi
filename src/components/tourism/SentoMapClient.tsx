@@ -13,6 +13,7 @@ import { KOCHI_CENTER, GOOGLE_MAPS_MAP_ID } from "@/lib/constants";
 import { GoogleMapProvider } from "@/components/map/GoogleMapProvider";
 import { RouteLayer, type RouteSummary } from "@/components/map/RouteLayer";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import type { Audience } from "@/config/navigation";
 
 /** 営業時間の表示用テキスト（曜日別は未使用で note に自由記述を入れている） */
 function hoursText(spot: Sento): string {
@@ -69,7 +70,13 @@ function MapController({
  * 移動は基本タクシー前提のため、ルートは車モードで計算し、
  * タクシー会社一覧への導線を随所に置く。
  */
-export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
+export function SentoMapClient({
+  initialSpots,
+  audience,
+}: {
+  initialSpots: Sento[];
+  audience: Audience;
+}) {
   // サーバーで焼き込んだ初期データで即描画し、裏で最新を取り直す
   const [spots, setSpots] = useState<Sento[]>(initialSpots);
 
@@ -89,7 +96,7 @@ export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
   useEffect(() => {
     let cancelled = false;
     const load = () =>
-      fetchSento().then((list) => {
+      fetchSento(audience).then((list) => {
         if (!cancelled) setSpots(list);
       });
     load();
@@ -105,7 +112,7 @@ export function SentoMapClient({ initialSpots }: { initialSpots: Sento[] }) {
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, []);
+  }, [audience]);
 
   function clearRoute() {
     setRouteDest(null);

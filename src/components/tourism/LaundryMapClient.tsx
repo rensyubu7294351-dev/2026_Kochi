@@ -12,6 +12,7 @@ import { KOCHI_CENTER, GOOGLE_MAPS_MAP_ID } from "@/lib/constants";
 import { GoogleMapProvider } from "@/components/map/GoogleMapProvider";
 import { RouteLayer, type RouteSummary } from "@/components/map/RouteLayer";
 import { useGeolocation } from "@/hooks/useGeolocation";
+import type { Audience } from "@/config/navigation";
 
 /** 営業時間の表示用テキスト（曜日別は未使用で note に自由記述を入れている） */
 function hoursText(spot: Laundry): string {
@@ -71,8 +72,10 @@ function MapController({
  */
 export function LaundryMapClient({
   initialSpots,
+  audience,
 }: {
   initialSpots: Laundry[];
+  audience: Audience;
 }) {
   // サーバーで焼き込んだ初期データで即描画し、裏で最新を取り直す
   const [spots, setSpots] = useState<Laundry[]>(initialSpots);
@@ -93,7 +96,7 @@ export function LaundryMapClient({
   useEffect(() => {
     let cancelled = false;
     const load = () =>
-      fetchLaundry().then((list) => {
+      fetchLaundry(audience).then((list) => {
         if (!cancelled) setSpots(list);
       });
     load();
@@ -109,7 +112,7 @@ export function LaundryMapClient({
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, []);
+  }, [audience]);
 
   function clearRoute() {
     setRouteDest(null);

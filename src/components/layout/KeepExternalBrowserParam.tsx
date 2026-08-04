@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { audienceFromPath, lastPathKey } from "@/config/navigation";
 
 /**
  * LINE対策のURL管理（全ページ共通・レイアウトに設置）。
@@ -56,9 +57,10 @@ export function KeepExternalBrowserParam() {
 
     // 次回起動時の「最後に開いていたページ」復元用に記録（HomeLauncher が参照）。
     try {
-      if (pathname !== "/" && !pathname.startsWith("/admin")) {
+      const isLauncher = pathname === "/" || pathname === "/supporter";
+      if (!isLauncher && !pathname.startsWith("/admin")) {
         localStorage.setItem(
-          "lastPath",
+          lastPathKey(audienceFromPath(pathname)),
           window.location.pathname + window.location.search,
         );
       }

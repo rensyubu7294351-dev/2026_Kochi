@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { Audience } from "@/config/navigation";
 import type { Sento } from "@/types";
 import { fetchSento, EMPTY_HOURS } from "@/lib/tourism";
 
@@ -9,7 +10,13 @@ import { fetchSento, EMPTY_HOURS } from "@/lib/tourism";
  * 登録内容はユーザーページ（/tourism/sento）のピン地図に反映される。
  * 営業時間は自由記述テキストとして hours.note に保存する。
  */
-export function AdminSentoEditor({ password }: { password: string }) {
+export function AdminSentoEditor({
+  password,
+  audience,
+}: {
+  password: string;
+  audience: Audience;
+}) {
   const [spots, setSpots] = useState<Sento[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -30,9 +37,9 @@ export function AdminSentoEditor({ password }: { password: string }) {
 
   const reload = useCallback(async () => {
     setLoading(true);
-    setSpots(await fetchSento());
+    setSpots(await fetchSento(audience));
     setLoading(false);
-  }, []);
+  }, [audience]);
 
   useEffect(() => {
     reload();
@@ -63,6 +70,7 @@ export function AdminSentoEditor({ password }: { password: string }) {
         "x-admin-password": password,
       },
       body: JSON.stringify({
+        audience,
         name,
         lat: latNum,
         lng: lngNum,

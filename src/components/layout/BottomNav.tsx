@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MAIN_NAV } from "@/config/navigation";
+import { navFor, type Audience } from "@/config/navigation";
 
 /**
  * 画面下部の固定タブバー（ネイティブアプリ風）。
@@ -13,8 +13,9 @@ import { MAIN_NAV } from "@/config/navigation";
  * flex-1 + overflow-y-auto のコンテナでスクロールさせ、このバーを
  * 最後の子として通常フローで置く（＝バーは絶対に動かない）。
  */
-export function BottomNav() {
+export function BottomNav({ audience }: { audience: Audience }) {
   const pathname = usePathname();
+  const items = navFor(audience);
 
   return (
     <nav
@@ -25,10 +26,10 @@ export function BottomNav() {
       <ul
         className="grid"
         style={{
-          gridTemplateColumns: `repeat(${MAIN_NAV.length}, minmax(0, 1fr))`,
+          gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`,
         }}
       >
-        {MAIN_NAV.map((item) => {
+        {items.map((item) => {
           const active = pathname === item.href;
           return (
             <li key={item.href}>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { checkAdminHeader } from "@/lib/adminAuth";
 import { getAdminClient, isAdminConfigured } from "@/lib/supabaseAdmin";
 import type { TourismKind } from "@/types";
+import { AUDIENCES, type Audience } from "@/config/navigation";
 
 const KINDS: TourismKind[] = ["sento", "laundry", "taxi"];
 
@@ -13,6 +14,10 @@ function isKind(v: string): v is TourismKind {
 function buildRow(kind: TourismKind, b: Record<string, unknown>) {
   const str = (v: unknown) =>
     typeof v === "string" && v.trim() ? v.trim() : null;
+  // 系統（ユーザー用 / サポーター用）。未指定は従来どおりユーザー用
+  const audience: Audience = AUDIENCES.includes(b.audience as Audience)
+    ? (b.audience as Audience)
+    : "user";
 
   if (kind === "taxi") {
     if (typeof b.name !== "string" || typeof b.tel !== "string") return null;
@@ -21,6 +26,7 @@ function buildRow(kind: TourismKind, b: Record<string, unknown>) {
       tel: b.tel.trim(),
       note: str(b.note),
       url: str(b.url),
+      audience,
     };
   }
 
@@ -41,6 +47,7 @@ function buildRow(kind: TourismKind, b: Record<string, unknown>) {
     tel: str(b.tel),
     url: str(b.url),
     note: str(b.note),
+    audience,
   };
   if (kind === "sento") {
     return {

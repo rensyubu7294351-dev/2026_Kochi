@@ -1,4 +1,5 @@
 import type { Facility, FacilityRow } from "@/types";
+import type { Audience } from "@/config/navigation";
 import { sbSelect } from "./supabaseRest";
 
 /** DBの行(snake_case) → アプリ内のFacility型 に変換 */
@@ -16,11 +17,11 @@ export function rowToFacility(row: FacilityRow): Facility {
  * 全施設ピンを取得し、会場スラッグごとにまとめて返す。
  * Supabase未設定時は空を返す（画面は壊さない）。
  */
-export async function fetchFacilitiesByVenue(): Promise<
-  Record<string, Facility[]>
-> {
+export async function fetchFacilitiesByVenue(
+  audience: Audience,
+): Promise<Record<string, Facility[]>> {
   const rows = await sbSelect<FacilityRow>(
-    "facilities?select=*&order=created_at.asc",
+    `facilities?select=*&audience=eq.${audience}&order=created_at.asc`,
   );
   const grouped: Record<string, Facility[]> = {};
   for (const row of rows) {
@@ -32,9 +33,10 @@ export async function fetchFacilitiesByVenue(): Promise<
 /** 指定会場の施設ピンだけ取得（管理画面のリスト表示用に元の行も返す） */
 export async function fetchVenueFacilityRows(
   venueSlug: string,
+  audience: Audience,
 ): Promise<FacilityRow[]> {
   return sbSelect<FacilityRow>(
-    `facilities?select=*&venue_slug=eq.${encodeURIComponent(
+    `facilities?select=*&audience=eq.${audience}&venue_slug=eq.${encodeURIComponent(
       venueSlug,
     )}&order=created_at.asc`,
   );

@@ -3,6 +3,7 @@ import { checkAdminHeader } from "@/lib/adminAuth";
 import { getAdminClient, isAdminConfigured } from "@/lib/supabaseAdmin";
 import { FACILITY_META } from "@/config/facilities";
 import type { FacilityType } from "@/types";
+import { AUDIENCES, type Audience } from "@/config/navigation";
 
 const VALID_TYPES = Object.keys(FACILITY_META) as FacilityType[];
 
@@ -27,6 +28,10 @@ export async function POST(req: Request) {
   }
 
   const { venueSlug, type, label, note, lat, lng } = body;
+  // 系統（ユーザー用 / サポーター用）。未指定は従来どおりユーザー用
+  const audience: Audience = AUDIENCES.includes(body.audience)
+    ? body.audience
+    : "user";
 
   if (
     typeof venueSlug !== "string" ||
@@ -50,6 +55,7 @@ export async function POST(req: Request) {
       note: note?.trim() || null,
       lat,
       lng,
+      audience,
     })
     .select()
     .single();

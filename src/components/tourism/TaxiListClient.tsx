@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import type { TaxiCompany } from "@/types";
 import { fetchTaxi } from "@/lib/tourism";
+import type { Audience } from "@/config/navigation";
 
 /** タクシー会社一覧（Supabaseから取得）。 */
 export function TaxiListClient({
   initialCompanies,
+  audience,
 }: {
   initialCompanies: TaxiCompany[];
+  audience: Audience;
 }) {
   // サーバーで焼き込んだ初期データで即描画し、裏で最新を取り直す
   const [companies, setCompanies] = useState<TaxiCompany[]>(initialCompanies);
@@ -16,7 +19,7 @@ export function TaxiListClient({
   useEffect(() => {
     let cancelled = false;
     const load = () =>
-      fetchTaxi().then((data) => {
+      fetchTaxi(audience).then((data) => {
         if (!cancelled) setCompanies(data);
       });
     load();
@@ -32,7 +35,7 @@ export function TaxiListClient({
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, []);
+  }, [audience]);
 
   if (companies.length === 0) {
     return (

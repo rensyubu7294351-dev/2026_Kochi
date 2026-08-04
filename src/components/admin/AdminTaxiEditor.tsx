@@ -1,11 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { Audience } from "@/config/navigation";
 import type { TaxiCompany } from "@/types";
 import { fetchTaxi } from "@/lib/tourism";
 
 /** タクシー会社の管理エディタ（地図なし・一覧＋追加）。 */
-export function AdminTaxiEditor({ password }: { password: string }) {
+export function AdminTaxiEditor({
+  password,
+  audience,
+}: {
+  password: string;
+  audience: Audience;
+}) {
   const [companies, setCompanies] = useState<TaxiCompany[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -18,9 +25,9 @@ export function AdminTaxiEditor({ password }: { password: string }) {
 
   const reload = useCallback(async () => {
     setLoading(true);
-    setCompanies(await fetchTaxi());
+    setCompanies(await fetchTaxi(audience));
     setLoading(false);
-  }, []);
+  }, [audience]);
 
   useEffect(() => {
     reload();
@@ -39,7 +46,7 @@ export function AdminTaxiEditor({ password }: { password: string }) {
         "Content-Type": "application/json",
         "x-admin-password": password,
       },
-      body: JSON.stringify({ name, tel, note, url }),
+      body: JSON.stringify({ audience, name, tel, note, url }),
     });
     setSaving(false);
     if (res.ok) {
