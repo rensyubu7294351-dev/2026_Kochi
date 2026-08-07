@@ -7,13 +7,16 @@ import { AUDIENCES, navFor, routesFor } from "@/config/navigation";
 let currentPath = "/venues";
 vi.mock("next/navigation", () => ({ usePathname: () => currentPath }));
 vi.mock("next/link", () => ({
+  // prefetch は next/link が使う設定で、DOMには渡さない
   default: ({
     children,
     href,
+    prefetch: _prefetch,
     ...rest
   }: {
     children: React.ReactNode;
     href: string;
+    prefetch?: boolean;
   }) => (
     <a href={href} {...rest}>
       {children}

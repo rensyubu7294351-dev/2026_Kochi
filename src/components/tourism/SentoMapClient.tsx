@@ -296,10 +296,7 @@ export function SentoMapClient({
                 </a>
               )}
               <a
-                href={
-                  routeDest.mapUrl ||
-                  buildPlaceUrl(routeDest.position, routeDest.name)
-                }
+                href={buildPlaceUrl(routeDest.position, routeDest.mapUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs font-medium text-sky-600 underline"

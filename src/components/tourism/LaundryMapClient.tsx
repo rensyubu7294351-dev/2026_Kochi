@@ -234,9 +234,7 @@ export function LaundryMapClient({
               </p>
             )}
             <a
-              href={
-                routeDest.url || buildPlaceUrl(routeDest.position, routeDest.name)
-              }
+              href={buildPlaceUrl(routeDest.position, routeDest.url)}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-2 inline-block text-xs font-medium text-sky-600 underline"
