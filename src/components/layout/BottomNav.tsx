@@ -37,14 +37,19 @@ export function BottomNav({ audience }: { audience: Audience }) {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={
-                  "tap flex flex-col items-center gap-0.5 px-0.5 py-2 text-[10px] font-bold " +
+                  "tap group relative flex flex-col items-center gap-0.5 px-0.5 py-2 text-[10px] font-bold " +
                   (active ? "text-yosakoi" : "text-gray-400")
                 }
               >
-                {/* 選択中は絵文字がふわっと持ち上がり少し大きくなる */}
+                {/* 押した瞬間だけパッと浮かぶ丸いハイライト。指を離すとすぐ消える */}
+                <span
+                  aria-hidden
+                  className="absolute inset-x-1 inset-y-0.5 -z-10 scale-75 rounded-xl bg-yosakoi/10 opacity-0 transition-all duration-150 ease-spring group-active:scale-100 group-active:opacity-100"
+                />
+                {/* 選択中は絵文字がふわっと持ち上がり少し大きくなる／押した瞬間はキュッと縮んで反応を伝える */}
                 <span
                   className={
-                    "text-xl leading-none transition-all duration-300 ease-spring " +
+                    "text-xl leading-none transition-all duration-300 ease-spring group-active:scale-75 " +
                     (active
                       ? "-translate-y-0.5 scale-110"
                       : "grayscale opacity-60")
