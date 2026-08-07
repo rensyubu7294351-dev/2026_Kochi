@@ -83,6 +83,12 @@ export const FACILITY_META: Record<
     color: "#ff6fae",
     short: "店",
   },
+  lodging: {
+    label: "宿",
+    icon: "lodging.svg",
+    color: "#8b5a2b",
+    short: "宿",
+  },
   judging: {
     label: "審査場",
     icon: "judging.svg",
@@ -115,6 +121,7 @@ export const FACILITY_ORDER: FacilityType[] = [
   "drugstore",
   "convenience",
   "shop",
+  "lodging",
   "judging",
   "water-station",
   "cheer-point",

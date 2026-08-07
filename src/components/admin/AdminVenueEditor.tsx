@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { Audience } from "@/config/navigation";
+import { readAudience, type EditTarget } from "@/lib/adminAudience";
 import {
   Map,
   AdvancedMarker,
@@ -28,16 +28,68 @@ function MapController({ venue }: { venue: Venue }) {
 }
 
 /**
+ * 座標を打ち込んだ時に、その地点まで地図を動かす。
+ * token が増えた時だけ動くので、地図のタップやドラッグの邪魔をしない。
+ */
+function FocusOnDraft({
+  position,
+  token,
+}: {
+  position: LatLng | null;
+  token: number;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map || !position || token === 0) return;
+    map.panTo(position);
+  }, [map, token]); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
+}
+
+/**
+ * 入力された緯度・経度を読み取る。
+ * Googleマップからコピーすると「33.5583, 133.5402」のように2つまとめて
+ * 貼られることが多いので、片方の欄にまとめて貼られた場合も受け付ける。
+ */
+export function parseLatLngInput(
+  latText: string,
+  lngText: string,
+): LatLng | null {
+  const nums = `${latText} ${lngText}`
+    .replace(/[，、]/g, ",")
+    .split(/[\s,]+/)
+    .filter(Boolean)
+    .map(Number);
+  if (nums.length !== 2 || nums.some((n) => !Number.isFinite(n))) return null;
+  const [lat, lng] = nums;
+  // 地球上にあり得ない値は弾く
+  if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+  return { lat, lng };
+}
+
+/** 2地点の距離（m）。打ち間違いに気づけるよう会場からの離れ具合を出す */
+function distanceMeters(a: LatLng, b: LatLng): number {
+  const R = 6371000;
+  const rad = (x: number) => (x * Math.PI) / 180;
+  const dLat = rad(b.lat - a.lat);
+  const dLng = rad(b.lng - a.lng);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return Math.round(2 * R * Math.asin(Math.sqrt(h)));
+}
+
+/**
  * 管理者用の施設ピン編集画面。
- * 使い方: 会場タブ選択 → 地図をタップして位置指定 → 種類/名前を入れて保存。
- * 保存内容はSupabaseに書き込まれ、ユーザーの地図に反映される。
+ * 使い方: 会場タブ選択 → 地図をタップ（または座標を入力）して位置指定 →
+ * 種類/名前を入れて保存。保存内容はSupabaseに書き込まれ、地図に反映される。
  */
 export function AdminVenueEditor({
   password,
   audience,
 }: {
   password: string;
-  audience: Audience;
+  audience: EditTarget;
 }) {
   const [activeSlug, setActiveSlug] = useState(VENUES[0].slug);
   const venue = getVenueBySlug(activeSlug) ?? VENUES[0];
@@ -45,8 +97,12 @@ export function AdminVenueEditor({
   const [rows, setRows] = useState<FacilityRow[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 入力中の下書き
+  // 入力中の下書き。位置は地図タップと座標入力のどちらでも決められる
   const [draft, setDraft] = useState<LatLng | null>(null);
+  const [latText, setLatText] = useState("");
+  const [lngText, setLngText] = useState("");
+  // 座標を打ち込んだ時だけ地図をそこへ動かすための合図
+  const [focusToken, setFocusToken] = useState(0);
   const [type, setType] = useState<FacilityType>(FACILITY_ORDER[0]);
   const [label, setLabel] = useState("");
   const [note, setNote] = useState("");
@@ -61,23 +117,48 @@ export function AdminVenueEditor({
 
   const reload = useCallback(async () => {
     setLoading(true);
-    setRows(await fetchVenueFacilityRows(activeSlug, audience));
+    // 「両方」を選んでいる時は、見本としてユーザー用の内容を表示する
+    setRows(await fetchVenueFacilityRows(activeSlug, readAudience(audience)));
     setLoading(false);
-  }, [activeSlug]);
+  }, [activeSlug, audience]);
 
   useEffect(() => {
     reload();
-    setDraft(null);
+    clearDraft();
   }, [reload]);
+
+  /** 位置を決める（地図タップ・座標入力の共通処理） */
+  function applyDraft(pos: LatLng | null) {
+    setDraft(pos);
+    setLatText(pos ? String(pos.lat) : "");
+    setLngText(pos ? String(pos.lng) : "");
+  }
+
+  function clearDraft() {
+    applyDraft(null);
+  }
 
   function handleMapClick(e: MapMouseEvent) {
     const ll = e.detail.latLng;
-    if (ll) setDraft({ lat: ll.lat, lng: ll.lng });
+    if (ll) applyDraft({ lat: ll.lat, lng: ll.lng });
+  }
+
+  /** 座標欄の入力。打ち途中でもピンが消えないよう、読めた時だけ位置を更新する */
+  function handleCoordInput(nextLat: string, nextLng: string) {
+    setLatText(nextLat);
+    setLngText(nextLng);
+    const parsed = parseLatLngInput(nextLat, nextLng);
+    if (!parsed) return;
+    // 「33.55, 133.54」とまとめて貼られた時は2つの欄に振り分ける
+    setLatText(String(parsed.lat));
+    setLngText(String(parsed.lng));
+    setDraft(parsed);
+    setFocusToken((t) => t + 1);
   }
 
   async function handleSave() {
     if (!draft) {
-      setMessage("先に地図をタップして位置を指定してください");
+      setMessage("先に地図をタップするか、座標を入力して位置を指定してください");
       return;
     }
     setSaving(true);
@@ -100,10 +181,14 @@ export function AdminVenueEditor({
     });
     setSaving(false);
     if (res.ok) {
-      setDraft(null);
+      clearDraft();
       setLabel("");
       setNote("");
-      setMessage("保存しました");
+      setMessage(
+        audience === "both"
+          ? "保存しました（ユーザー用・サポーター用の両方）"
+          : "保存しました",
+      );
       reload();
     } else {
       const j = await res.json().catch(() => ({}));
@@ -112,8 +197,12 @@ export function AdminVenueEditor({
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("このピンを削除しますか？")) return;
-    const res = await fetch(`/api/facilities?id=${id}`, {
+    const warning =
+      audience === "both"
+        ? "このピンを削除しますか？（ユーザー用・サポーター用の両方から消えます）"
+        : "このピンを削除しますか？";
+    if (!confirm(warning)) return;
+    const res = await fetch(`/api/facilities?id=${id}&audience=${audience}`, {
       method: "DELETE",
       headers: { "x-admin-password": password },
     });
@@ -147,7 +236,11 @@ export function AdminVenueEditor({
     });
     if (res.ok) {
       setEditingId(null);
-      setMessage("更新しました");
+      setMessage(
+        audience === "both"
+          ? "更新しました（ユーザー用・サポーター用の両方）"
+          : "更新しました",
+      );
       reload();
     } else {
       const j = await res.json().catch(() => ({}));
@@ -162,7 +255,7 @@ export function AdminVenueEditor({
       {/* 地図（タップで位置指定） */}
       <div className="px-4 pt-3">
         <p className="mb-2 text-sm text-gray-600">
-          地図をタップして位置を指定 → 下で種類を選んで「保存」
+          地図をタップ（または下に座標を入力）して位置を指定 → 種類を選んで「保存」
         </p>
       </div>
       <GoogleMapProvider>
@@ -175,6 +268,7 @@ export function AdminVenueEditor({
             onClick={handleMapClick}
           >
             <MapController venue={venue} />
+            <FocusOnDraft position={draft} token={focusToken} />
             {/* 既存ピン */}
             {rows.map((r) => {
               const meta = FACILITY_META[r.type];
@@ -247,11 +341,48 @@ export function AdminVenueEditor({
             className="mb-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
           />
 
+          {/* 位置：地図タップでも、座標を直接打ち込んでも決められる */}
+          <label className="mb-1 block text-xs text-gray-500">
+            位置（地図をタップするか、座標を直接入力）
+          </label>
+          <div className="mb-1 flex gap-2">
+            <input
+              value={latText}
+              onChange={(e) => handleCoordInput(e.target.value, lngText)}
+              inputMode="decimal"
+              placeholder="緯度 例: 33.558342"
+              aria-label="緯度"
+              className="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+            <input
+              value={lngText}
+              onChange={(e) => handleCoordInput(latText, e.target.value)}
+              inputMode="decimal"
+              placeholder="経度 例: 133.540268"
+              aria-label="経度"
+              className="w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
           <p className="mb-3 text-xs text-gray-400">
-            位置:{" "}
-            {draft
-              ? `${draft.lat.toFixed(6)}, ${draft.lng.toFixed(6)}`
-              : "未指定（地図をタップ）"}
+            {draft ? (
+              <>
+                この位置に置きます（{venue.name} から
+                {distanceMeters(venue.center, draft) >= 1000
+                  ? `約${(distanceMeters(venue.center, draft) / 1000).toFixed(1)}km`
+                  : `約${distanceMeters(venue.center, draft)}m`}
+                ）
+                {distanceMeters(venue.center, draft) > 3000 && (
+                  <span className="font-bold text-orange-600">
+                    {" "}
+                    ⚠️ 会場から離れています。座標の入れ違いにご注意ください
+                  </span>
+                )}
+              </>
+            ) : latText || lngText ? (
+              "緯度・経度の数字を確認してください（例: 33.558342 と 133.540268）"
+            ) : (
+              "未指定（地図をタップ、または上に座標を入力）"
+            )}
           </p>
 
           <div className="flex gap-2">
@@ -263,8 +394,8 @@ export function AdminVenueEditor({
               {saving ? "保存中..." : "保存"}
             </button>
             <button
-              onClick={() => setDraft(null)}
-              disabled={!draft}
+              onClick={clearDraft}
+              disabled={!draft && !latText && !lngText}
               className="rounded-lg border border-gray-200 px-4 py-2 text-sm disabled:opacity-50"
             >
               クリア

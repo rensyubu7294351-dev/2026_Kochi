@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import { checkAdminHeader } from "@/lib/adminAuth";
 import { getAdminClient, isAdminConfigured } from "@/lib/supabaseAdmin";
 import type { TourismKind } from "@/types";
-import { AUDIENCES, type Audience } from "@/config/navigation";
+import type { Audience } from "@/config/navigation";
+import {
+  parseEditTarget,
+  writeAudiences,
+  type EditTarget,
+} from "@/lib/adminAudience";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const KINDS: TourismKind[] = ["sento", "laundry", "taxi"];
 
@@ -10,14 +16,52 @@ function isKind(v: string): v is TourismKind {
   return (KINDS as string[]).includes(v);
 }
 
+/**
+ * 対象の行と、もう一方の系統にある「同じ内容の行」のID一覧を返す。
+ *
+ * 2系統は同じ内容を別行として持っており、行同士をつなぐ列は無いため、
+ * 中身で対を探す。観光データは追加と削除だけで内容の書き換えが無いので、
+ * 名前（＋座標）が一致すれば同じものとみなせる。
+ * 見つからなければ対象の1件だけを返すため、取り違えて消すことはない。
+ */
+async function targetIds(
+  supabase: SupabaseClient,
+  kind: TourismKind,
+  id: string,
+  target: EditTarget,
+): Promise<string[]> {
+  if (target !== "both") return [id];
+
+  const columns = kind === "taxi" ? "name, tel, audience" : "name, lat, lng, audience";
+  const { data: row } = await supabase
+    .from(kind)
+    .select(columns)
+    .eq("id", id)
+    .single<Record<string, unknown>>();
+  if (!row) return [id];
+
+  let query = supabase
+    .from(kind)
+    .select("id")
+    .eq("name", row.name as string)
+    .neq("audience", row.audience as string);
+  query =
+    kind === "taxi"
+      ? query.eq("tel", row.tel as string)
+      : query.eq("lat", row.lat as number).eq("lng", row.lng as number);
+
+  const { data: twins } = await query;
+  return [id, ...(twins ?? []).map((t) => t.id as string)];
+}
+
 /** 種類ごとに、リクエストボディ → 挿入する行 に変換する */
-function buildRow(kind: TourismKind, b: Record<string, unknown>) {
+function buildRow(
+  kind: TourismKind,
+  b: Record<string, unknown>,
+  audience: Audience,
+) {
   const str = (v: unknown) =>
     typeof v === "string" && v.trim() ? v.trim() : null;
-  // 系統（ユーザー用 / サポーター用）。未指定は従来どおりユーザー用
-  const audience: Audience = AUDIENCES.includes(b.audience as Audience)
-    ? (b.audience as Audience)
-    : "user";
 
   if (kind === "taxi") {
     if (typeof b.name !== "string" || typeof b.tel !== "string") return null;
@@ -83,8 +127,10 @@ export async function POST(
   if (!body) {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
-  const row = buildRow(kind, body);
-  if (!row) {
+  // 「両方」なら系統ごとに1行ずつ入れ、2つのサイトに同じ内容が載るようにする
+  const target = parseEditTarget(body.audience);
+  const rows = writeAudiences(target).map((a) => buildRow(kind, body, a));
+  if (rows.some((r) => r === null)) {
     return NextResponse.json(
       { error: "必須項目が不足しています" },
       { status: 400 },
@@ -96,9 +142,8 @@ export async function POST(
   // 検証済みなので never にキャストして通す（DB型は未生成）。
   const { data, error } = await supabase
     .from(kind)
-    .insert(row as never)
-    .select()
-    .single();
+    .insert(rows as never)
+    .select();
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -123,12 +168,20 @@ export async function DELETE(
     );
   }
 
-  const id = new URL(req.url).searchParams.get("id");
+  const url = new URL(req.url);
+  const id = url.searchParams.get("id");
   if (!id) {
     return NextResponse.json({ error: "id is required" }, { status: 400 });
   }
   const supabase = getAdminClient();
-  const { error } = await supabase.from(kind).delete().eq("id", id);
+  // 「両方」なら、もう一方の系統にある同じ内容も一緒に消す
+  const ids = await targetIds(
+    supabase,
+    kind,
+    id,
+    parseEditTarget(url.searchParams.get("audience")),
+  );
+  const { error } = await supabase.from(kind).delete().in("id", ids);
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

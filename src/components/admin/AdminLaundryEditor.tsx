@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { Audience } from "@/config/navigation";
+import { readAudience, type EditTarget } from "@/lib/adminAudience";
 import type { Laundry } from "@/types";
 import { fetchLaundry, EMPTY_HOURS } from "@/lib/tourism";
 
@@ -15,7 +15,7 @@ export function AdminLaundryEditor({
   audience,
 }: {
   password: string;
-  audience: Audience;
+  audience: EditTarget;
 }) {
   const [spots, setSpots] = useState<Laundry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -33,7 +33,7 @@ export function AdminLaundryEditor({
 
   const reload = useCallback(async () => {
     setLoading(true);
-    setSpots(await fetchLaundry(audience));
+    setSpots(await fetchLaundry(readAudience(audience)));
     setLoading(false);
   }, [audience]);
 
@@ -92,7 +92,7 @@ export function AdminLaundryEditor({
 
   async function handleDelete(id: string) {
     if (!confirm("削除しますか？")) return;
-    const res = await fetch(`/api/tourism/laundry?id=${id}`, {
+    const res = await fetch(`/api/tourism/laundry?id=${id}&audience=${audience}`, {
       method: "DELETE",
       headers: { "x-admin-password": password },
     });

@@ -145,7 +145,8 @@ describe("2系統でデータが混ざらない", () => {
       "src/app/api/tourism/[kind]/route.ts",
     ]) {
       const src = read(path.join(ROOT, rel));
-      expect(src).toContain("AUDIENCES.includes");
+      // 受け取った値を検証してから（不正値はユーザー用に倒す）行に載せる
+      expect(src).toContain("parseEditTarget(");
       expect(src).toContain("audience,");
     }
   });

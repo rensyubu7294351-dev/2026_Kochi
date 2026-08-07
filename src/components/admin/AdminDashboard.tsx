@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { AUDIENCE_PREFIX } from "@/config/navigation";
 import {
-  AUDIENCES,
-  AUDIENCE_LABEL,
-  AUDIENCE_PREFIX,
-  type Audience,
-} from "@/config/navigation";
+  EDIT_TARGETS,
+  EDIT_TARGET_LABEL,
+  readAudience,
+  type EditTarget,
+} from "@/lib/adminAudience";
 import { AdminVenueEditor } from "./AdminVenueEditor";
 import { AdminSentoEditor } from "./AdminSentoEditor";
 import { AdminLaundryEditor } from "./AdminLaundryEditor";
@@ -24,9 +25,10 @@ const SECTIONS: { key: Section; label: string }[] = [
 
 /**
  * 管理画面のトップ。
- * 上部で「どちらのサイトを編集するか（ユーザー用 / サポーター用）」を選び、
+ * 上部で「どこを編集するか（ユーザー用 / サポーター用 / 両方）」を選び、
  * その下でセクション（演舞会場 / 観光編）を切り替える。
- * 2つのサイトはデータが別々なので、選択中の系統だけが編集される。
+ * 2つのサイトはデータが別々なので、選んだ対象だけが編集される。
+ * 「両方」を選ぶと、追加・変更・削除が2つのサイトへ同時に反映される。
  */
 export function AdminDashboard({
   password,
@@ -35,9 +37,10 @@ export function AdminDashboard({
   password: string;
   onLock: () => void;
 }) {
-  const [audience, setAudience] = useState<Audience>("user");
+  const [audience, setAudience] = useState<EditTarget>("both");
   const [section, setSection] = useState<Section>("venues");
   const isSupporter = audience === "supporter";
+  const isBoth = audience === "both";
 
   return (
     <main className="pb-8">
@@ -47,10 +50,10 @@ export function AdminDashboard({
           <h1 className="font-bold">管理者ページ</h1>
           <nav className="text-xs text-gray-400">
             <Link
-              href={`${AUDIENCE_PREFIX[audience]}/venues`}
+              href={`${AUDIENCE_PREFIX[readAudience(audience)]}/venues`}
               className="hover:text-yosakoi"
             >
-              アプリ（{AUDIENCE_LABEL[audience]}）
+              アプリ（{EDIT_TARGET_LABEL[readAudience(audience)]}）
             </Link>{" "}
             › 管理者
           </nav>
@@ -67,19 +70,25 @@ export function AdminDashboard({
       <div
         className={
           "border-b-4 px-3 py-3 " +
-          (isSupporter
-            ? "border-indigo-500 bg-indigo-50"
-            : "border-yosakoi bg-yosakoi/5")
+          (isBoth
+            ? "border-emerald-500 bg-emerald-50"
+            : isSupporter
+              ? "border-indigo-500 bg-indigo-50"
+              : "border-yosakoi bg-yosakoi/5")
         }
       >
         <p className="mb-1.5 text-xs font-bold text-gray-500">
           編集するサイトを選んでください
         </p>
         <div className="flex gap-2">
-          {AUDIENCES.map((a) => {
+          {EDIT_TARGETS.map((a) => {
             const active = a === audience;
             const activeColor =
-              a === "supporter" ? "bg-indigo-600" : "bg-yosakoi";
+              a === "both"
+                ? "bg-emerald-600"
+                : a === "supporter"
+                  ? "bg-indigo-600"
+                  : "bg-yosakoi";
             return (
               <button
                 key={a}
@@ -87,23 +96,33 @@ export function AdminDashboard({
                 onClick={() => setAudience(a)}
                 aria-pressed={active}
                 className={
-                  "flex-1 rounded-lg px-3 py-2 text-sm font-bold transition " +
+                  "flex-1 rounded-lg px-2 py-2 text-sm font-bold transition " +
                   (active
                     ? `${activeColor} text-white shadow`
                     : "border border-gray-300 bg-white text-gray-500")
                 }
               >
-                {AUDIENCE_LABEL[a]}
+                {EDIT_TARGET_LABEL[a]}
               </button>
             );
           })}
         </div>
         <p className="mt-1.5 text-xs font-medium text-gray-600">
           いま編集中：
-          <span className={isSupporter ? "text-indigo-700" : "text-yosakoi"}>
-            {AUDIENCE_LABEL[audience]}
+          <span
+            className={
+              isBoth
+                ? "text-emerald-700"
+                : isSupporter
+                  ? "text-indigo-700"
+                  : "text-yosakoi"
+            }
+          >
+            {EDIT_TARGET_LABEL[audience]}
           </span>
-          （もう一方には反映されません）
+          {isBoth
+            ? "（追加・変更・削除がユーザー用とサポーター用の両方に反映されます。一覧はユーザー用を表示しています）"
+            : "（もう一方には反映されません）"}
         </p>
       </div>
 

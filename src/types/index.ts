@@ -30,6 +30,7 @@ export type FacilityType =
   | "drugstore" // ドラッグストア
   | "convenience" // コンビニ
   | "shop" // お店
+  | "lodging" // 宿（宿泊先）
   | "judging" // 審査会場
   | "water-station" // 給水所
   | "cheer-point"; // 頑張りポイント（あと少し！の目印）

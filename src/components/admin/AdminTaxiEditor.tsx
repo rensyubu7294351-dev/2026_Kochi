@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { Audience } from "@/config/navigation";
+import { readAudience, type EditTarget } from "@/lib/adminAudience";
 import type { TaxiCompany } from "@/types";
 import { fetchTaxi } from "@/lib/tourism";
 
@@ -11,7 +11,7 @@ export function AdminTaxiEditor({
   audience,
 }: {
   password: string;
-  audience: Audience;
+  audience: EditTarget;
 }) {
   const [companies, setCompanies] = useState<TaxiCompany[]>([]);
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ export function AdminTaxiEditor({
 
   const reload = useCallback(async () => {
     setLoading(true);
-    setCompanies(await fetchTaxi(audience));
+    setCompanies(await fetchTaxi(readAudience(audience)));
     setLoading(false);
   }, [audience]);
 
@@ -64,7 +64,7 @@ export function AdminTaxiEditor({
 
   async function handleDelete(id: string) {
     if (!confirm("削除しますか？")) return;
-    const res = await fetch(`/api/tourism/taxi?id=${id}`, {
+    const res = await fetch(`/api/tourism/taxi?id=${id}&audience=${audience}`, {
       method: "DELETE",
       headers: { "x-admin-password": password },
     });

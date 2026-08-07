@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { Audience } from "@/config/navigation";
+import { readAudience, type EditTarget } from "@/lib/adminAudience";
 import type { Sento } from "@/types";
 import { fetchSento, EMPTY_HOURS } from "@/lib/tourism";
 
@@ -15,7 +15,7 @@ export function AdminSentoEditor({
   audience,
 }: {
   password: string;
-  audience: Audience;
+  audience: EditTarget;
 }) {
   const [spots, setSpots] = useState<Sento[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,7 +37,7 @@ export function AdminSentoEditor({
 
   const reload = useCallback(async () => {
     setLoading(true);
-    setSpots(await fetchSento(audience));
+    setSpots(await fetchSento(readAudience(audience)));
     setLoading(false);
   }, [audience]);
 
@@ -109,7 +109,7 @@ export function AdminSentoEditor({
 
   async function handleDelete(id: string) {
     if (!confirm("削除しますか？")) return;
-    const res = await fetch(`/api/tourism/sento?id=${id}`, {
+    const res = await fetch(`/api/tourism/sento?id=${id}&audience=${audience}`, {
       method: "DELETE",
       headers: { "x-admin-password": password },
     });

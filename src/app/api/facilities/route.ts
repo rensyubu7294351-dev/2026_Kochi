@@ -3,9 +3,47 @@ import { checkAdminHeader } from "@/lib/adminAuth";
 import { getAdminClient, isAdminConfigured } from "@/lib/supabaseAdmin";
 import { FACILITY_META } from "@/config/facilities";
 import type { FacilityType } from "@/types";
-import { AUDIENCES, type Audience } from "@/config/navigation";
+import {
+  parseEditTarget,
+  writeAudiences,
+  type EditTarget,
+} from "@/lib/adminAudience";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const VALID_TYPES = Object.keys(FACILITY_META) as FacilityType[];
+
+/**
+ * 対象のピンと、もう一方の系統にある「同じピン」のID一覧を返す。
+ *
+ * 2系統は同じ内容を別行として持っており、行同士をつなぐ列は無い。
+ * ピンの位置は編集できない（種類・名前・メモだけ変更できる）ので、
+ * 会場と座標が一致する行を対になるピンとみなす。
+ * 見つからなければ対象の1件だけを返すため、取り違えて消すことはない。
+ */
+async function targetIds(
+  supabase: SupabaseClient,
+  id: string,
+  target: EditTarget,
+): Promise<string[]> {
+  if (target !== "both") return [id];
+
+  const { data: row } = await supabase
+    .from("facilities")
+    .select("venue_slug, lat, lng, audience")
+    .eq("id", id)
+    .single();
+  if (!row) return [id];
+
+  const { data: twins } = await supabase
+    .from("facilities")
+    .select("id")
+    .eq("venue_slug", row.venue_slug)
+    .eq("lat", row.lat)
+    .eq("lng", row.lng)
+    .neq("audience", row.audience);
+
+  return [id, ...(twins ?? []).map((t) => t.id as string)];
+}
 
 /**
  * 施設ピンの新規追加。
@@ -28,10 +66,8 @@ export async function POST(req: Request) {
   }
 
   const { venueSlug, type, label, note, lat, lng } = body;
-  // 系統（ユーザー用 / サポーター用）。未指定は従来どおりユーザー用
-  const audience: Audience = AUDIENCES.includes(body.audience)
-    ? body.audience
-    : "user";
+  // 編集対象（ユーザー用 / サポーター用 / 両方）。未指定は従来どおりユーザー用
+  const target = parseEditTarget(body.audience);
 
   if (
     typeof venueSlug !== "string" ||
@@ -46,19 +82,21 @@ export async function POST(req: Request) {
   }
 
   const supabase = getAdminClient();
+  // 「両方」なら系統ごとに1行ずつ入れ、2つのサイトに同じピンが立つようにする
   const { data, error } = await supabase
     .from("facilities")
-    .insert({
-      venue_slug: venueSlug,
-      type,
-      label: label?.trim() || null,
-      note: note?.trim() || null,
-      lat,
-      lng,
-      audience,
-    })
-    .select()
-    .single();
+    .insert(
+      writeAudiences(target).map((audience) => ({
+        venue_slug: venueSlug,
+        type,
+        label: label?.trim() || null,
+        note: note?.trim() || null,
+        lat,
+        lng,
+        audience,
+      })),
+    )
+    .select();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -110,12 +148,13 @@ export async function PATCH(req: Request) {
   }
 
   const supabase = getAdminClient();
+  // 「両方」なら、もう一方の系統にある同じピンも一緒に直す
+  const ids = await targetIds(supabase, body.id, parseEditTarget(body.audience));
   const { data, error } = await supabase
     .from("facilities")
     .update(patch)
-    .eq("id", body.id)
-    .select()
-    .single();
+    .in("id", ids)
+    .select();
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -134,13 +173,20 @@ export async function DELETE(req: Request) {
     );
   }
 
-  const id = new URL(req.url).searchParams.get("id");
+  const url = new URL(req.url);
+  const id = url.searchParams.get("id");
   if (!id) {
     return NextResponse.json({ error: "id is required" }, { status: 400 });
   }
 
   const supabase = getAdminClient();
-  const { error } = await supabase.from("facilities").delete().eq("id", id);
+  // 「両方」なら、もう一方の系統にある同じピンも一緒に消す
+  const ids = await targetIds(
+    supabase,
+    id,
+    parseEditTarget(url.searchParams.get("audience")),
+  );
+  const { error } = await supabase.from("facilities").delete().in("id", ids);
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
