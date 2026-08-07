@@ -135,7 +135,13 @@ export function VenueExplorer({
   useEffect(() => {
     const url = new URL(window.location.href);
     url.searchParams.set("v", activeSlug);
-    window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+    // 第1引数に null を渡すと Next.js が履歴に持たせている内部状態まで
+    // 消えて戻るボタンが効かなくなるため、今の状態を引き継ぐ
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${url.pathname}${url.search}`,
+    );
   }, [activeSlug]);
 
   function clearRoute() {

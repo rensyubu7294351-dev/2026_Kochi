@@ -172,14 +172,29 @@ describe("トップページ廃止後のリンク健全性", () => {
   });
 
   it("全ページ共通の外枠に下部タブが置かれている", () => {
-    const src = read(path.join(SRC, "components/screens/screens.tsx"));
+    const src = read(path.join(SRC, "components/layout/AppShell.tsx"));
     expect(src).toContain("<BottomNav audience={audience} />");
   });
 
   it("タブが隠れないよう本文だけをスクロールさせている", () => {
-    const src = read(path.join(SRC, "components/screens/screens.tsx"));
+    const src = read(path.join(SRC, "components/layout/AppShell.tsx"));
     expect(src).toContain("h-dvh");
     expect(src).toContain("overflow-y-auto");
+  });
+
+  it("外枠はレイアウトに置かれている（ページを移ってもタブが作り直されない）", () => {
+    const layout = read(path.join(APP_DIR, "layout.tsx"));
+    expect(layout).toContain("<AppShell>{children}</AppShell>");
+  });
+
+  it("各ページは自前でタブを描かない（描くとタブが毎回作り直される）", () => {
+    const offenders = sourceFiles(SRC).filter(
+      (f) =>
+        path.basename(f) !== "AppShell.tsx" &&
+        path.basename(f) !== "BottomNav.tsx" &&
+        /<BottomNav/.test(read(f)),
+    );
+    expect(offenders.map((f) => path.relative(SRC, f))).toEqual([]);
   });
 });
 

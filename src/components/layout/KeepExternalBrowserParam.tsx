@@ -52,7 +52,11 @@ export function KeepExternalBrowserParam() {
     // 通常ブラウザ: 共有用にURLへパラメータを常時付与（表示・履歴に影響しない）
     if (url.searchParams.get("openExternalBrowser") !== "1") {
       url.searchParams.set("openExternalBrowser", "1");
-      window.history.replaceState(null, "", url.toString());
+      // 第1引数に null を渡すと Next.js が履歴に持たせている内部状態まで
+      // 消えてしまい、戻るボタンが効かなくなる（この効果は Next.js が
+      // replaceState を差し替えるより先に動くため、素の replaceState が
+      // 呼ばれる）。今の状態をそのまま引き継いでURLだけ書き換える。
+      window.history.replaceState(window.history.state, "", url.toString());
     }
 
     // 次回起動時の「最後に開いていたページ」復元用に記録（HomeLauncher が参照）。

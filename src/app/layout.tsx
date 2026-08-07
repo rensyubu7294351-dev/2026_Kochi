@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { preconnect } from "react-dom";
 import { SUPABASE_URL } from "@/lib/supabaseEnv";
 import { KeepExternalBrowserParam } from "@/components/layout/KeepExternalBrowserParam";
+import { AppShell } from "@/components/layout/AppShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -36,9 +37,8 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <KeepExternalBrowserParam />
         </Suspense>
-        <div className="mx-auto min-h-dvh max-w-[var(--max-content-width)] bg-white shadow-sm">
-          {children}
-        </div>
+        {/* 下部タブバーを含む共通の外枠。ページを移ってもバーは作り直さない */}
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
