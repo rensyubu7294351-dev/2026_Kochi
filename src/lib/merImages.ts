@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 export type MerImage = {
-  /** ファイル名（保存時のファイル名にも使う） */
+  /** ファイル名 */
   file: string;
   /** 公開URL */
   src: string;

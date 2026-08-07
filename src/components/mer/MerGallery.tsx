@@ -2,8 +2,8 @@ import type { MerImage } from "@/lib/merImages";
 
 /**
  * MERの画像一覧。
- * 端末に保存してもらう用途のため、原寸の画像をそのまま配信し
- * （Next.jsの最適化を通さない）、各画像に保存ボタンを添える。
+ * 端末に保存してもらう用途のため、原寸の画像をそのまま配信する
+ * （Next.jsの最適化を通さない）。保存は画像の長押しで行う。
  * 最初の1枚だけ即時読み込み、残りは遅延読み込みにする。
  */
 export function MerGallery({ images }: { images: MerImage[] }) {
@@ -18,7 +18,7 @@ export function MerGallery({ images }: { images: MerImage[] }) {
   return (
     <div className="space-y-4">
       <p className="rounded-lg border border-yosakoi/30 bg-yosakoi/5 px-3 py-2 text-sm font-medium text-yosakoi">
-        📥 「保存」ボタン、または画像を長押しして
+        📥 画像を長押しして
         <br />
         「写真に追加」で端末に保存できます
       </p>
@@ -51,13 +51,6 @@ export function MerGallery({ images }: { images: MerImage[] }) {
                 decoding="async"
               />
             </div>
-            <a
-              href={img.src}
-              download={img.file}
-              className="tap mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-yosakoi py-2.5 text-sm font-bold text-white"
-            >
-              📥 画像を保存
-            </a>
           </li>
         ))}
       </ul>
