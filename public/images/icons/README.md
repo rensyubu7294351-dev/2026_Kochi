@@ -16,6 +16,7 @@
 | ドラッグストア | `drugstore.svg` |
 | コンビニ | `convenience.svg` |
 | 宿 | `lodging.svg` |
+| 集合・待機所 | `assembly.svg` |
 | メダル | `medal.svg` |
 
 ※ 現状のマップは色付き丸マーカーで動作します。アイコン画像を用意したら

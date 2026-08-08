@@ -24,6 +24,7 @@ export type FacilityType =
   | "toilet-public" // 公衆トイレ
   | "toilet-temporary" // 仮設トイレ
   | "bus-waiting" // バス待機場所
+  | "assembly" // 集合・待機所（踊り前に集まる場所）
   | "dance-start" // 踊り開始位置
   | "dance-end" // 踊り終了位置
   | "reception" // 受付

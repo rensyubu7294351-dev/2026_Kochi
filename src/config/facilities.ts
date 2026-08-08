@@ -47,6 +47,12 @@ export const FACILITY_META: Record<
     color: "#ffab2e",
     short: "バス",
   },
+  assembly: {
+    label: "集合・待機所",
+    icon: "assembly.svg",
+    color: "#475569",
+    short: "集合",
+  },
   "dance-start": {
     label: "踊り開始位置",
     icon: "dance-start.svg",
@@ -111,6 +117,7 @@ export const FACILITY_META: Record<
 
 /** 凡例やフィルタで使う、表示順を固定した施設タイプ一覧 */
 export const FACILITY_ORDER: FacilityType[] = [
+  "assembly",
   "dance-start",
   "dance-end",
   "reception",

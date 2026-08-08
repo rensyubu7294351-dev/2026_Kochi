@@ -7,7 +7,7 @@ import { LocationErrorNotice } from "@/components/layout/LocationErrorNotice";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import type { Facility, FacilityType, LatLng } from "@/types";
-import { VENUES, getVenueBySlug } from "@/data/venues";
+import { VENUES, LODGING_VENUE, getVenueBySlug } from "@/data/venues";
 import { fetchFacilitiesByVenue } from "@/lib/facilities";
 import type { Audience } from "@/config/navigation";
 import { FACILITY_META } from "@/config/facilities";
@@ -43,6 +43,8 @@ export function VenueExplorer({
     return isValidSlug(v) ? v : VENUES[0].slug;
   });
   const isAll = activeSlug === "all";
+  // 「宿」は演舞会場ではないので、メダル印やパレード案内は出さない
+  const isLodging = activeSlug === LODGING_VENUE.slug;
   const active = getVenueBySlug(activeSlug) ?? VENUES[0];
 
   // URLで会場指定が無ければ、前回最後に開いていたタブを復元
@@ -228,7 +230,7 @@ export function VenueExplorer({
           aria-label="パンくずリスト"
           className="flex flex-wrap items-center gap-1.5 text-sm text-gray-500"
         >
-          <span>演舞会場</span>
+          <span>{isLodging ? "宿泊先" : "演舞会場"}</span>
           <span aria-hidden>›</span>
           <span className="font-medium text-gray-900">
             {isAll ? "全体" : active.name}
@@ -243,6 +245,13 @@ export function VenueExplorer({
       <div key={activeSlug} className="animate-fade-in-up px-4 pt-3">
         {isAll ? (
           <h1 className="text-xl font-bold">全演舞会場マップ</h1>
+        ) : isLodging ? (
+          <>
+            <h1 className="text-xl font-bold">🛏️ {active.name}</h1>
+            <p className="mt-0.5 text-sm font-medium text-kochi-sea">
+              {active.address}
+            </p>
+          </>
         ) : (
           <>
             <div className="flex flex-wrap items-center gap-2">

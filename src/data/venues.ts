@@ -197,7 +197,33 @@ export const VENUES: Venue[] = [
   },
 ];
 
-/** slug から会場を引く（個別ページ用） */
+/**
+ * 「宿」タブ。演舞会場ではないが、会場と同じ地図の仕組みで
+ * 宿泊先のピンを置きたいので、会場と同じ形のデータとして持つ。
+ * タブは「全体」の左（＝一番左）に出す。
+ *
+ * 競演場ではないので courseLength・hasMedal・image は持たない
+ * （メダル印やパレード案内が出ないようにするため）。
+ * ピンは他の会場と同じく管理画面から追加し、DBには
+ * venue_slug = "lodging" として保存される。
+ */
+export const LODGING_VENUE: Venue = {
+  id: 0,
+  slug: "lodging",
+  name: "宿",
+  address: "高知市内の宿泊先",
+  // 高知市の中心部。市内に点在する宿を広めに見渡せるズーム
+  center: { lat: 33.5597, lng: 133.5311 },
+  zoom: 13,
+  hasMedal: false,
+  image: "",
+  facilities: [],
+};
+
+/** 会場タブに出すもの全部（宿を含む）。表示順は VenueTabs 側で決める */
+export const MAP_TABS: Venue[] = [LODGING_VENUE, ...VENUES];
+
+/** slug から会場を引く（個別ページ用）。「宿」タブも同じ仕組みで引ける */
 export function getVenueBySlug(slug: string): Venue | undefined {
-  return VENUES.find((v) => v.slug === slug);
+  return MAP_TABS.find((v) => v.slug === slug);
 }

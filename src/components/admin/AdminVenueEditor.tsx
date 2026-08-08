@@ -250,7 +250,12 @@ export function AdminVenueEditor({
 
   return (
     <div className="pb-10">
-      <VenueTabs activeSlug={activeSlug} onSelect={setActiveSlug} />
+      {/* ピンの置き場所になるタブだけ出す（「全体」は置き場所ではないので隠す） */}
+      <VenueTabs
+        activeSlug={activeSlug}
+        onSelect={setActiveSlug}
+        showAll={false}
+      />
 
       {/* 地図（タップで位置指定） */}
       <div className="px-4 pt-3">
